@@ -1,25 +1,34 @@
-# Distinct Authors
+# Distinct Authors Dashboard
 
-A mobile-friendly GitHub Pages site that counts distinct Reddit usernames who posted or commented in a subreddit during a chosen date range.
+A static GitHub Pages app that builds a lightweight subreddit activity dashboard from the public Arctic Shift Reddit archive.
 
-It uses the public Arctic Shift Reddit archive and does not require a Reddit login or API key.
+## What it shows
 
-## Default
+- distinct authors who posted or commented in the selected date range
+- returning authors (2+ total contributions)
+- one-time authors
+- total posts, total comments, and total contributions
+- contribution frequency over time
+- monthly active authors
+- top contributors
+- monthly aggregate cards
+- CSV export of usernames
+- JSON export of the dashboard summary
 
-The page defaults to `r/TheTowerGame` and the preceding six calendar months.
+## How it works
 
-## Method
+The app runs entirely in the browser and queries Arctic Shift's public aggregation endpoints:
 
-The browser calls Arctic Shift's post and comment author aggregation endpoints, splits large date ranges into smaller chunks, unions all usernames, and reports:
+- `posts/search/aggregate`
+- `comments/search/aggregate`
 
-- distinct post authors
-- distinct comment authors
-- overlap between the two
-- raw union
-- final distinct count (with optional exclusion of `[deleted]` and `AutoModerator`)
+It uses:
 
-Large queries are automatically subdivided if the API times out.
+- `aggregate=author` for unique and returning-author calculations
+- `aggregate=created_utc` for timeline and aggregate charts
 
-## GitHub Pages
+Because large subreddit aggregations may time out, the page retries and can split requests into smaller date ranges.
 
-Publish the repository from the `main` branch, root folder (`/`).
+## Hosting
+
+This repo is designed for GitHub Pages. Publish from the `main` branch, root folder.
