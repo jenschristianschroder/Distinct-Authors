@@ -3,7 +3,7 @@ const { test, expect } = require('@playwright/test');
 const fixture = {
   subreddit: 'TheTowerGame',
   topic: 'Daily gem cap',
-  start: '2026-08-06',
+  start: '2026-08-07',
   end: '2026-09-05',
   model: 'gpt-5.6-luna',
   terms: ['Daily gem cap', 'gem cap', 'daily gems'],
@@ -64,7 +64,7 @@ async function productionSearch(request) {
       data: {
         subreddit: 'TheTowerGame',
         topic: 'Daily gem cap',
-        start: '2026-08-06',
+        start: '2026-08-07',
         end: '2026-09-05',
         depth: 'thorough',
         maxItems: 500
@@ -105,7 +105,7 @@ test('hybrid sentiment UI is current and renders retrieved data', async ({ page 
   await expect(page.getByRole('button', { name: 'Search & analyze' })).toBeVisible();
 
   await page.getByLabel('Topic or concept').fill('Daily gem cap');
-  await page.getByLabel('Start date').fill('2026-08-06');
+  await page.getByLabel('Start date').fill('2026-08-07');
   await page.getByLabel('End date').fill('2026-09-05');
   await page.getByRole('button', { name: 'Search & analyze' }).click();
 
@@ -116,6 +116,16 @@ test('hybrid sentiment UI is current and renders retrieved data', async ({ page 
   await expect(page.locator('#llmSummary')).toContainText('raising the daily gem cap');
   await expect(page.locator('#coverageNote')).toContainText('15 Reddit URLs');
   await expect(page.locator('#error')).toBeHidden();
+});
+
+test('topic sentiment date inputs enforce a 30-day inclusive maximum', async ({ page }) => {
+  await page.goto('/sentiment.html');
+  const start=page.getByLabel('Start date'),end=page.getByLabel('End date');
+  await start.fill('2026-08-01');
+  await expect(end).toHaveAttribute('min','2026-08-01');
+  await expect(end).toHaveAttribute('max','2026-08-30');
+  await end.fill('2026-09-05');
+  await expect(start).toHaveValue('2026-08-07');
 });
 
 test('unavailable usernames are excluded from unique voices and voice rankings', async ({ page }) => {
@@ -137,7 +147,7 @@ test('unavailable usernames are excluded from unique voices and voice rankings',
 
   await page.goto('/sentiment.html');
   await page.getByLabel('Topic or concept').fill('Daily gem cap');
-  await page.getByLabel('Start date').fill('2026-08-06');
+  await page.getByLabel('Start date').fill('2026-08-07');
   await page.getByLabel('End date').fill('2026-09-05');
   await page.getByRole('button', { name: 'Search & analyze' }).click();
 
@@ -157,7 +167,7 @@ test('empty backend response produces a useful error', async ({ page }) => {
 
   await page.goto('/sentiment.html');
   await page.getByLabel('Topic or concept').fill('Daily gem cap');
-  await page.getByLabel('Start date').fill('2026-08-06');
+  await page.getByLabel('Start date').fill('2026-08-07');
   await page.getByLabel('End date').fill('2026-09-05');
   await page.getByRole('button', { name: 'Search & analyze' }).click();
   await expect(page.locator('#error')).toContainText('No analyzable Reddit contributions were retrieved');
