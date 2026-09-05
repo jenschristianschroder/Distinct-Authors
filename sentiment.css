@@ -19,6 +19,8 @@
 .positive-border { border-top-color:#16a34a; }
 .neutral-border { border-top-color:#94a3b8; }
 .negative-border { border-top-color:#dc2626; }
+.voice-kind + .voice-kind { margin-top:14px; padding-top:12px; border-top:1px solid var(--line); }
+.voice-kind-title { color:var(--muted); font-size:.8rem; font-weight:750; text-transform:uppercase; letter-spacing:.05em; margin-bottom:4px; }
 .voice-row { display:flex; justify-content:space-between; gap:10px; padding:7px 0; border-top:1px solid var(--line); font-size:.9rem; }
 .voice-row:first-child { border-top:0; }
 .voice-row span:first-child { min-width:0; overflow-wrap:anywhere; }
