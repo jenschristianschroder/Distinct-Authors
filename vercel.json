@@ -3,6 +3,7 @@
   "functions": {
     "api/search.js": { "maxDuration": 60 },
     "api/ci-search.js": { "maxDuration": 60 },
-    "api/summarize.js": { "maxDuration": 30 }
+    "api/summarize.js": { "maxDuration": 30 },
+    "api/topics.js": { "maxDuration": 60 }
   }
 }
