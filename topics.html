@@ -1,0 +1,157 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+  <meta name="theme-color" content="#0f172a" />
+  <title>Subreddit Topic Landscape</title>
+  <link rel="stylesheet" href="styles.css" />
+  <link rel="stylesheet" href="topics.css" />
+</head>
+<body>
+<main>
+  <nav class="page-nav" aria-label="Dashboard pages">
+    <a href="index.html">Activity dashboard</a>
+    <span aria-current="page">Topic landscape</span>
+    <a href="sentiment.html">Topic sentiment</a>
+  </nav>
+
+  <section class="hero topics-hero">
+    <div class="eyebrow">Subreddit-wide research</div>
+    <h1>Subreddit Topic Landscape</h1>
+    <p class="subhead muted">Discover what a subreddit is talking about, which topics dominate the conversation, the recurring opinions around each topic, and the sentiment mix behind those discussions.</p>
+  </section>
+
+  <div class="app-grid">
+    <aside class="panel">
+      <div class="panel-pad grid">
+        <div>
+          <h2>Analyze subreddit</h2>
+          <p class="muted control-intro">Archive-first analysis works best over focused date ranges. Each run currently supports up to 31 days.</p>
+        </div>
+
+        <div>
+          <label for="subreddit">Subreddit</label>
+          <input id="subreddit" type="text" value="TheTowerGame" autocomplete="off" autocapitalize="none" spellcheck="false" />
+        </div>
+
+        <div class="grid two">
+          <div>
+            <label for="start">Start date</label>
+            <input id="start" type="date" />
+          </div>
+          <div>
+            <label for="end">End date</label>
+            <input id="end" type="date" />
+          </div>
+        </div>
+
+        <div>
+          <label for="topicCount">Number of topics</label>
+          <select id="topicCount">
+            <option value="6">6</option>
+            <option value="8" selected>8</option>
+            <option value="10">10</option>
+          </select>
+        </div>
+
+        <button id="run">Analyze subreddit topics</button>
+
+        <div class="info-box">
+          <strong class="info-title">How it works</strong>
+          <div>Arctic Shift scans posts and comments in the selected period. OpenAI clusters a representative archive sample into major topics and recurring opinions. The app then maps the full retrieved archive back to those topics for counts, sentiment, authors, commenters, and popular posts.</div>
+        </div>
+
+        <details class="llm-settings">
+          <summary>AI connection</summary>
+          <div class="grid llm-grid">
+            <div>
+              <label for="backend">Vercel backend URL</label>
+              <input id="backend" type="url" placeholder="https://distinct-authors.vercel.app/api/topics" autocomplete="off" />
+            </div>
+            <div>
+              <label for="token">Backend access token</label>
+              <input id="token" type="password" placeholder="APP_ACCESS_TOKEN" autocomplete="off" />
+            </div>
+            <p class="muted tiny">The access token is stored only for this browser tab. Your OpenAI API key remains on Vercel.</p>
+          </div>
+        </details>
+
+        <div id="progressWrap" class="status-wrap hidden">
+          <div class="progress"><div id="bar" class="bar"></div></div>
+          <div id="status" class="status"></div>
+        </div>
+        <div id="error" class="error hidden"></div>
+      </div>
+    </aside>
+
+    <section class="dashboard">
+      <section id="results" class="hidden dashboard">
+        <div class="panel">
+          <div class="summary-header">
+            <div>
+              <div class="summary-title" id="summaryTitle">Subreddit landscape</div>
+              <div class="summary-range" id="summaryRange"></div>
+            </div>
+            <div class="summary-range" id="modelMeta"></div>
+          </div>
+          <div class="kpi-grid topics-kpis">
+            <div class="kpi featured"><div class="kpi-label">Archive contributions scanned</div><div class="kpi-value" id="kpiContributions">—</div><div class="kpi-sub" id="kpiContributionsSub"></div></div>
+            <div class="kpi"><div class="kpi-label">Topics found</div><div class="kpi-value" id="kpiTopics">—</div><div class="kpi-sub">Distinct LLM-clustered discussion areas</div></div>
+            <div class="kpi"><div class="kpi-label">Known voices</div><div class="kpi-value" id="kpiVoices">—</div><div class="kpi-sub">Resolved post authors and commenters</div></div>
+            <div class="kpi"><div class="kpi-label">Positive</div><div class="kpi-value positive-text" id="kpiPositive">—</div><div class="kpi-sub" id="kpiPositiveSub"></div></div>
+            <div class="kpi"><div class="kpi-label">Neutral</div><div class="kpi-value neutral-text" id="kpiNeutral">—</div><div class="kpi-sub" id="kpiNeutralSub"></div></div>
+            <div class="kpi"><div class="kpi-label">Negative</div><div class="kpi-value negative-text" id="kpiNegative">—</div><div class="kpi-sub" id="kpiNegativeSub"></div></div>
+          </div>
+          <div id="coverage" class="coverage-note"></div>
+        </div>
+
+        <div class="panel chart-card">
+          <h3>AI overview</h3>
+          <div class="chart-sub">High-level synthesis of the retrieved subreddit sample.</div>
+          <div id="overview" class="overview-copy"></div>
+          <div id="patterns" class="pattern-list"></div>
+        </div>
+
+        <div class="chart-grid two">
+          <div class="panel chart-card">
+            <h3>Discussion share by topic</h3>
+            <div class="chart-sub">Primary topic assignment across retrieved posts and comments.</div>
+            <div id="topicShare" class="topic-bars"></div>
+          </div>
+          <div class="panel chart-card">
+            <h3>Sentiment by topic</h3>
+            <div class="chart-sub">Lightweight local sentiment classification for contributions assigned to each topic.</div>
+            <div id="topicSentiment" class="sentiment-topic-list"></div>
+          </div>
+        </div>
+
+        <div class="panel chart-card">
+          <div class="section-head">
+            <div>
+              <h3>Topic details</h3>
+              <div class="chart-sub">Topics are ranked by matched discussion volume. Opinions are synthesized by OpenAI; counts and sentiment are calculated from archive rows.</div>
+            </div>
+          </div>
+          <div id="topicCards" class="topic-card-grid"></div>
+        </div>
+
+        <div class="panel chart-card">
+          <h3>Corpus signals</h3>
+          <div class="chart-sub">High-frequency words and phrases used as supporting signals for topic discovery.</div>
+          <div id="candidatePhrases" class="phrase-list"></div>
+        </div>
+
+        <div class="panel chart-card">
+          <h3>Coverage & caveats</h3>
+          <div id="caveats" class="caveat-list"></div>
+        </div>
+      </section>
+    </section>
+  </div>
+
+  <footer>This page is archive-first: OpenAI identifies and summarizes topics from a representative Arctic Shift sample, while full retrieved archive rows are used for topic counts, sentiment, leading voices, and post popularity. Results are broad but not an exhaustive census of Reddit.</footer>
+</main>
+<script src="topics.js"></script>
+</body>
+</html>
