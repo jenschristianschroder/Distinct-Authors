@@ -1,0 +1,41 @@
+.page-nav { display:flex; gap:12px; align-items:center; margin:0 4px 14px; font-size:.92rem; color:var(--muted); }
+.page-nav a { color:var(--blue); text-decoration:none; font-weight:650; }
+.page-nav a::after { content:'→'; margin-left:12px; color:var(--muted); }
+.tiny { font-size:.78rem; margin:0; }
+.llm-settings { border:1px solid var(--line); border-radius:14px; overflow:hidden; }
+.llm-settings > summary { padding:12px 13px; border:0; }
+.llm-grid { padding:0 13px 13px; }
+.sentiment-kpis .featured { grid-column:span 2; }
+.positive-text { color:#15803d; }
+.neutral-text { color:#64748b; }
+.negative-text { color:#b91c1c; }
+@media (prefers-color-scheme: dark) { .positive-text{color:#4ade80}.neutral-text{color:#cbd5e1}.negative-text{color:#f87171} }
+.positive-bg { background:#16a34a; }
+.neutral-bg { background:#94a3b8; }
+.negative-bg { background:#dc2626; }
+.voice-grid { display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); gap:12px; }
+.voice-column { border:1px solid var(--line); border-top-width:4px; border-radius:16px; padding:13px; background:var(--card2); }
+.voice-column h4 { margin:0 0 10px; }
+.positive-border { border-top-color:#16a34a; }
+.neutral-border { border-top-color:#94a3b8; }
+.negative-border { border-top-color:#dc2626; }
+.voice-row { display:flex; justify-content:space-between; gap:10px; padding:7px 0; border-top:1px solid var(--line); font-size:.9rem; }
+.voice-row:first-child { border-top:0; }
+.voice-row span:first-child { min-width:0; overflow-wrap:anywhere; }
+.phrase-list { display:flex; flex-wrap:wrap; gap:9px; }
+.phrase { border:1px solid var(--line); background:var(--card2); border-radius:999px; padding:8px 11px; font-size:.9rem; }
+.phrase strong { margin-left:5px; }
+.post-list { display:grid; gap:10px; }
+.post-item { border:1px solid var(--line); border-radius:14px; padding:12px; background:var(--card2); }
+.post-title { font-weight:700; line-height:1.35; }
+.post-meta { color:var(--muted); font-size:.83rem; margin-top:5px; }
+.evidence-grid { display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); gap:12px; }
+.evidence-card { border:1px solid var(--line); border-radius:16px; padding:13px; background:var(--card2); }
+.evidence-card p { margin:7px 0; font-size:.9rem; }
+.evidence-meta { color:var(--muted); font-size:.8rem; }
+.llm-summary { white-space:pre-wrap; line-height:1.6; }
+.chart-shell svg text { font-family:inherit; }
+@media (max-width:700px) {
+  .voice-grid, .evidence-grid { grid-template-columns:1fr; }
+  .sentiment-kpis .featured { grid-column:auto; }
+}
