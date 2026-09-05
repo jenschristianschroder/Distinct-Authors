@@ -1,4 +1,4 @@
-import crypto from 'node:crypto';
+const crypto = require('node:crypto');
 
 const DEFAULT_MODEL = 'gpt-5.6-luna';
 const DEFAULT_ALLOWED_ORIGINS = [
@@ -56,7 +56,7 @@ function clean(value, max) {
   return String(value || '').replace(/\u0000/g, '').trim().slice(0, max);
 }
 
-export default async function handler(req, res) {
+module.exports = async function handler(req, res) {
   setCors(req, res);
 
   if (req.method === 'OPTIONS') return res.status(204).end();
@@ -71,7 +71,9 @@ export default async function handler(req, res) {
   const apiKey = process.env.OPENAI_API_KEY;
   if (!apiKey) return res.status(503).json({ error: 'OPENAI_API_KEY is not configured on Vercel.' });
 
-  const body = typeof req.body === 'string' ? JSON.parse(req.body) : (req.body || {});
+  let body;
+  try { body = typeof req.body === 'string' ? JSON.parse(req.body) : (req.body || {}); }
+  catch { return res.status(400).json({ error: 'Invalid JSON body.' }); }
   const subreddit = clean(body.subreddit, 100);
   const topic = clean(body.topic, 240);
   const evidence = clean(body.evidence, 18000);
@@ -138,4 +140,4 @@ export default async function handler(req, res) {
   } finally {
     clearTimeout(timer);
   }
-}
+};
