@@ -65,6 +65,29 @@ test('topic landscape renders discovered topics and opinions', async ({ page }) 
   await expect(page.locator('#error')).toBeHidden();
 });
 
+test('optional focus keywords are sent as data and highlighted in results', async ({ page }) => {
+  await page.unroute('**/api/topics');
+  let posted=null;
+  const focusedFixture={
+    ...fixture,
+    focus_keywords:['gem cap'],
+    stats:{...fixture.stats,focus_keywords:1,focus_topic_matches:1},
+    topics:[{...fixture.topics[0],focus_match:true,focus_score:10},fixture.topics[1]]
+  };
+  await page.route('**/api/topics', async route => {
+    posted=route.request().postDataJSON();
+    await route.fulfill({status:200,contentType:'application/json',body:JSON.stringify(focusedFixture)});
+  });
+  await page.goto('/topics.html');
+  await page.getByLabel('Start date').fill('2026-08-23');
+  await page.getByLabel('End date').fill('2026-09-05');
+  await page.locator('#focusKeywords').fill('gem cap');
+  await page.getByRole('button',{name:'Analyze subreddit topics'}).click();
+  await expect(page.locator('#coverage')).toContainText('Focus keywords: gem cap');
+  await expect(page.locator('#topicCards')).toContainText('Focus match');
+  expect(posted?.focusKeywords).toBe('gem cap');
+});
+
 test('topic landscape date inputs enforce a 30-day inclusive maximum', async ({ page }) => {
   await page.goto('/topics.html');
   const start=page.getByLabel('Start date'),end=page.getByLabel('End date');
