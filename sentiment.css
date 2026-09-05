@@ -5,6 +5,8 @@
 .llm-settings { border:1px solid var(--line); border-radius:14px; overflow:hidden; }
 .llm-settings > summary { padding:12px 13px; border:0; }
 .llm-grid { padding:0 13px 13px; }
+.llm-grid input[type=url], .llm-grid input[type=password] { width:100%; min-height:46px; font:inherit; color:var(--text); background:transparent; border:1px solid var(--line); border-radius:14px; padding:11px 12px; outline:none; }
+.llm-grid input[type=url]:focus, .llm-grid input[type=password]:focus { border-color:var(--blue); box-shadow:0 0 0 4px rgba(37,99,235,.14); }
 .sentiment-kpis .featured { grid-column:span 2; }
 .positive-text { color:#15803d; }
 .neutral-text { color:#64748b; }
