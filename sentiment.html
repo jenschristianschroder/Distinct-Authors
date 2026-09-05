@@ -2,35 +2,42 @@
 <html lang="en">
 <head>
   <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
-  <meta name="theme-color" content="#0f172a" />
+  <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover" />
   <title>Subreddit Sentiment & Opinion Analysis</title>
   <link rel="stylesheet" href="styles.css" />
   <link rel="stylesheet" href="sentiment.css" />
 </head>
 <body>
-<main>
-  <nav class="page-nav">
-    <a href="index.html">Activity dashboard</a>
-    <span>Sentiment & opinions</span>
-  </nav>
+<main class="shell">
+  <header class="hero">
+    <nav class="page-nav" aria-label="Dashboard pages">
+      <a href="index.html">Activity dashboard</a>
+      <a class="current" href="sentiment.html">Sentiment & opinions</a>
+    </nav>
+    <div>
+      <div class="eyebrow">Reddit topic research</div>
+      <h1>Subreddit Sentiment & Opinion Analysis</h1>
+      <p>Search a topic or concept in one subreddit, combine live AI web discovery with archive backfill, and inspect sentiment, recurring opinions, leading voices, popularity, and change over time.</p>
+    </div>
+  </header>
 
-  <section class="hero">
-    <h1>Subreddit Sentiment & Opinion Analysis</h1>
-    <p class="subhead muted">Search Reddit semantically with OpenAI web search, fetch discovered Reddit threads directly when possible, backfill with Arctic Shift, then analyze sentiment, opinions, voices, time, and post popularity.</p>
-  </section>
+  <div class="layout">
+    <aside class="panel controls-panel">
+      <div class="controls-head">
+        <div>
+          <h2>Search</h2>
+          <p class="muted">Shorter date ranges improve speed and archive coverage.</p>
+        </div>
+      </div>
 
-  <div class="app-grid">
-    <aside class="panel">
-      <div class="panel-pad grid">
+      <div class="grid">
         <div>
           <label for="subreddit">Subreddit</label>
           <input id="subreddit" type="text" value="TheTowerGame" autocomplete="off" autocapitalize="none" spellcheck="false" />
         </div>
-
         <div>
           <label for="topic">Topic or concept</label>
-          <input id="topic" type="text" placeholder="e.g. Gems, tournament rewards, modules" autocomplete="off" />
+          <input id="topic" type="text" placeholder="e.g. Daily gem cap" autocomplete="off" />
         </div>
 
         <div class="grid two">
@@ -76,7 +83,7 @@
 
         <div class="info-box">
           <strong style="display:block; margin-bottom:5px; color:var(--text)">How retrieval works</strong>
-          <div>OpenAI searches Reddit from multiple lexical and semantic angles. The backend then tries to fetch discovered Reddit threads directly and runs Arctic Shift searches using AI-generated topic variants. Results are deduplicated before analytics. This improves coverage, especially for recent discussion, but cannot guarantee every Reddit post or comment.</div>
+          <div>OpenAI searches Reddit from multiple lexical and semantic angles. Arctic Shift then scans the selected date range and backfills matching posts plus comments from matched discussion threads. Results are deduplicated before analytics. The displayed post/comment totals are the analyzed sample and may be capped by “Max per type”; the coverage panel reports larger archive counts when available.</div>
         </div>
 
         <details class="llm-settings">
@@ -88,95 +95,66 @@
             </div>
             <div>
               <label for="llmToken">Backend access token</label>
-              <input id="llmToken" type="password" placeholder="Your APP_ACCESS_TOKEN" autocomplete="off" />
+              <input id="llmToken" type="password" placeholder="APP_ACCESS_TOKEN" autocomplete="off" />
             </div>
-            <p class="muted tiny">The OpenAI API key stays server-side on Vercel. The backend URL may be remembered locally; the access token is kept only for this browser tab.</p>
+            <p class="muted tiny">The access token is held only in this browser tab. Your OpenAI key stays on Vercel and is never sent to the page.</p>
           </div>
         </details>
 
-        <div id="progressWrap" class="status-wrap hidden">
-          <div class="progress"><div id="bar" class="bar"></div></div>
+        <div id="progressWrap" class="progress-wrap hidden">
+          <div class="progress"><span id="bar"></span></div>
           <div id="status" class="status"></div>
         </div>
         <div id="error" class="error hidden"></div>
       </div>
     </aside>
 
-    <section class="dashboard">
-      <div id="results" class="panel hidden">
-        <div class="summary-header">
+    <section class="content">
+      <section id="results" class="hidden">
+        <div class="panel result-head">
           <div>
-            <div class="summary-title" id="summaryTitle">Topic overview</div>
-            <div class="summary-range" id="summaryRange"></div>
+            <h2 id="summaryTitle">Topic analysis</h2>
+            <div id="summaryRange" class="muted"></div>
           </div>
-          <div class="summary-range" id="sampleMeta"></div>
+          <div id="sampleMeta" class="result-count"></div>
         </div>
 
-        <div class="kpi-grid sentiment-kpis">
-          <div class="kpi featured">
-            <div class="kpi-label">Retrieved contributions</div>
-            <div class="kpi-value" id="kpiItems">—</div>
-            <div class="kpi-sub" id="kpiItemsSub"></div>
-          </div>
-          <div class="kpi">
-            <div class="kpi-label">Positive</div>
-            <div class="kpi-value positive-text" id="kpiPositive">—</div>
-            <div class="kpi-sub" id="kpiPositiveSub"></div>
-          </div>
-          <div class="kpi">
-            <div class="kpi-label">Neutral</div>
-            <div class="kpi-value neutral-text" id="kpiNeutral">—</div>
-            <div class="kpi-sub" id="kpiNeutralSub"></div>
-          </div>
-          <div class="kpi">
-            <div class="kpi-label">Negative</div>
-            <div class="kpi-value negative-text" id="kpiNegative">—</div>
-            <div class="kpi-sub" id="kpiNegativeSub"></div>
-          </div>
-          <div class="kpi">
-            <div class="kpi-label">Unique voices</div>
-            <div class="kpi-value" id="kpiAuthors">—</div>
-            <div class="kpi-sub">Authors and commenters in sample</div>
-          </div>
-          <div class="kpi">
-            <div class="kpi-label">Average post score</div>
-            <div class="kpi-value" id="kpiPostScore">—</div>
-            <div class="kpi-sub">For matched and linked posts</div>
-          </div>
+        <div class="kpis">
+          <div class="kpi accent"><span>Analyzed contributions</span><strong id="kpiItems">0</strong><small id="kpiItemsSub"></small></div>
+          <div class="kpi"><span>Positive</span><strong id="kpiPositive" class="positive-text">0</strong><small id="kpiPositiveSub"></small></div>
+          <div class="kpi"><span>Neutral</span><strong id="kpiNeutral" class="neutral-text">0</strong><small id="kpiNeutralSub"></small></div>
+          <div class="kpi"><span>Negative</span><strong id="kpiNegative" class="negative-text">0</strong><small id="kpiNegativeSub"></small></div>
+          <div class="kpi"><span>Unique known voices</span><strong id="kpiAuthors">0</strong><small>Resolved authors and commenters in sample</small></div>
+          <div class="kpi"><span>Average post score</span><strong id="kpiPostScore">0</strong><small>For matched and linked posts</small></div>
         </div>
+
         <div id="coverageNote" class="coverage-note"></div>
-      </div>
+      </section>
 
-      <div id="llmSummaryCard" class="panel chart-card hidden">
+      <div class="panel chart-card hidden" id="llmSummaryCard">
         <h3>AI opinion summary</h3>
-        <div class="chart-sub">Themes synthesized from the hybrid Reddit sample.</div>
+        <div class="chart-sub">AI synthesis of the hybrid Reddit sample.</div>
         <div id="llmSummary" class="llm-summary"></div>
       </div>
 
-      <div class="chart-grid two hidden" id="sentimentCharts">
+      <div class="charts-grid hidden" id="sentimentCharts">
         <div class="panel chart-card">
           <h3>Sentiment over time</h3>
-          <div class="chart-sub" id="timelineSubtitle">Share of positive, neutral, and negative contributions by period.</div>
-          <div class="chart-shell"><div id="timelineChart"></div></div>
-          <div class="legend">
-            <span><span class="swatch positive-bg"></span>Positive</span>
-            <span><span class="swatch neutral-bg"></span>Neutral</span>
-            <span><span class="swatch negative-bg"></span>Negative</span>
-          </div>
+          <div id="timelineSubtitle" class="chart-sub"></div>
+          <div id="timelineChart" class="chart"></div>
         </div>
-
         <div class="panel chart-card">
           <h3>Sentiment by post popularity</h3>
-          <div class="chart-sub">Sentiment mix grouped by linked post score quartile.</div>
-          <div class="chart-shell"><div id="popularityChart"></div></div>
+          <div class="chart-sub">Contributions grouped by the linked post’s Reddit score quartile.</div>
+          <div id="popularityChart" class="chart"></div>
         </div>
       </div>
 
-      <div class="split-grid hidden" id="opinionsSection">
+      <div class="charts-grid hidden" id="opinionsSection">
         <div class="panel chart-card">
           <h3>Common opinion phrases</h3>
-          <div class="chart-sub">Frequent non-trivial phrases in the retrieved topic sample.</div>
-          <div id="phrases" class="phrase-list"></div>
+          <div class="chart-sub">Repeated two-word phrases after lightweight stop-word filtering.</div>
+          <div id="phrases" class="phrases"></div>
         </div>
         <div class="panel chart-card">
           <h3>Most popular matched posts</h3>
@@ -187,7 +165,7 @@
 
       <div class="panel chart-card hidden" id="voicesSection">
         <h3>Main voices by sentiment</h3>
-        <div class="chart-sub">Top post authors and commenters are shown separately within each locally classified sentiment group.</div>
+        <div class="chart-sub">Top known post authors and commenters are shown separately. Deleted, unavailable, or unresolved usernames are excluded from voice rankings.</div>
         <div class="voice-grid">
           <div class="voice-column positive-border"><h4>Positive</h4><div id="positiveVoices"></div></div>
           <div class="voice-column neutral-border"><h4>Neutral</h4><div id="neutralVoices"></div></div>
@@ -213,5 +191,6 @@
   <footer>Retrieval combines OpenAI web search restricted to Reddit, best-effort direct Reddit thread fetching, and Arctic Shift archive backfill. Coverage is intentionally broad but not exhaustive. Sentiment labels are lightweight local heuristics; the opinion summary is generated by OpenAI from the retrieved sample.</footer>
 </main>
 <script src="sentiment.js"></script>
+<script src="sentiment-author-fix.js"></script>
 </body>
 </html>
