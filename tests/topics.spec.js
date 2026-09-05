@@ -25,6 +25,28 @@ const fixture = {
   ]
 };
 
+async function githubActionsOidcToken(){
+  const requestUrl=process.env.ACTIONS_ID_TOKEN_REQUEST_URL,requestToken=process.env.ACTIONS_ID_TOKEN_REQUEST_TOKEN;
+  if(!requestUrl||!requestToken)return'';
+  const joiner=requestUrl.includes('?')?'&':'?';
+  const response=await fetch(`${requestUrl}${joiner}audience=distinct-authors-ci`,{headers:{Authorization:`Bearer ${requestToken}`}});
+  if(!response.ok)throw new Error(`Unable to obtain GitHub OIDC token: HTTP ${response.status}`);
+  return String((await response.json())?.value||'');
+}
+
+async function productionTopics(request){
+  const oidc=await githubActionsOidcToken();
+  if(!oidc)return null;
+  const base=process.env.LIVE_BASE_URL||'https://distinct-authors.vercel.app';
+  let response=null;
+  for(let attempt=0;attempt<8;attempt++){
+    response=await request.post(`${base}/api/ci-topics`,{headers:{Authorization:`Bearer ${oidc}`},timeout:120000});
+    if(![404,503].includes(response.status()))return response;
+    await new Promise(resolve=>setTimeout(resolve,5000));
+  }
+  return response;
+}
+
 test.beforeEach(async ({ page }) => {
   await page.addInitScript(() => sessionStorage.setItem('sentimentAppToken','test-token'));
   await page.route('**/api/topics', async route => route.fulfill({status:200,contentType:'application/json',body:JSON.stringify(fixture)}));
@@ -52,4 +74,16 @@ test('topic landscape has no horizontal overflow on phone', async ({ page }) => 
   await expect(page.locator('#topicCards')).toContainText('Modules');
   const overflow = await page.evaluate(() => document.documentElement.scrollWidth - document.documentElement.clientWidth);
   expect(overflow).toBeLessThanOrEqual(1);
+});
+
+test('production topic landscape endpoint returns real clustered subreddit data', async ({ request }) => {
+  const response=await productionTopics(request);
+  test.skip(!response,'Live authentication is only available in GitHub Actions.');
+  expect(response.ok(),await response.text()).toBeTruthy();
+  const data=await response.json();
+  expect(Number(data?.stats?.posts_scanned||0)).toBeGreaterThan(10);
+  expect(Number(data?.stats?.comments_scanned||0)).toBeGreaterThan(50);
+  expect(data?.topics?.length||0).toBeGreaterThanOrEqual(3);
+  expect(Number(data?.stats?.assigned_contributions||0)).toBeGreaterThan(0);
+  expect(String(data?.overview||'').length).toBeGreaterThan(40);
 });
