@@ -10,7 +10,7 @@ const posts = [
 ];
 const comments = [
   { id:'c1', author:'carol', body:'The daily gem limit is frustrating and unfair.', score:5 },
-  { id:'c2', author:'dave', body:'Modules feel much better after the update.', score:3 }
+  { id:'c2', author:'dave', body:'The module improvements feel much better after the update.', score:3 }
 ];
 
 test('sentiment classifier preserves positive and negative direction', () => {
@@ -20,7 +20,7 @@ test('sentiment classifier preserves positive and negative direction', () => {
 
 test('candidate phrase extraction surfaces repeated substantive terms', () => {
   const phrases = landscape.candidatePhrases(posts, comments, 30).map(row => row.phrase);
-  assert.ok(phrases.some(value => value.includes('gem')));
+  assert.ok(phrases.includes('module improvements'));
 });
 
 test('topic assignment separates gem cap and module discussion', () => {
