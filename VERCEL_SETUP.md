@@ -12,7 +12,7 @@ In **Vercel project → Settings → Environment Variables**, add these for Prod
 
 - `OPENAI_API_KEY` — your OpenAI project API key. Mark it Sensitive.
 - `APP_ACCESS_TOKEN` — a long custom value you choose. This is the token entered in the sentiment page. Mark it Sensitive.
-- `OPENAI_MODEL` — optional. Defaults to `gpt-5.6-luna`.
+- `OPENAI_MODEL` — optional. Defaults to `gpt-5-nano`.
 - `ALLOWED_ORIGINS` — optional comma-separated browser origins. Default includes `https://jenschristianschroder.github.io` and Vercel-hosted deployments are also accepted.
 
 Never commit either secret to GitHub.
