@@ -47,6 +47,12 @@
         </div>
 
         <div>
+          <label for="focusKeywords">Focus keywords <span class="muted">(optional)</span></label>
+          <input id="focusKeywords" type="text" maxlength="240" placeholder="e.g. gem cap, modules, tournament rewards" autocomplete="off" spellcheck="false" />
+          <div class="muted tiny">Up to 8 comma-separated words or short phrases. They are treated only as semantic data and local ranking signals, never as instructions to the LLM.</div>
+        </div>
+
+        <div>
           <label for="topicCount">Topic granularity</label>
           <select id="topicCount">
             <option value="auto" selected>Auto — scale with subreddit activity</option>
@@ -61,7 +67,7 @@
 
         <div class="info-box">
           <strong class="info-title">How it works</strong>
-          <div>Arctic Shift scans posts and comments in the selected period. OpenAI clusters a representative archive sample into major topics and meaningful subtopics, then the app maps the full retrieved archive back to those clusters for counts, sentiment, authors, commenters, and popular posts. Auto mode scales from about 8 to 20 topics based on corpus size.</div>
+          <div>Arctic Shift scans posts and comments in the selected period. OpenAI embeddings cluster a representative archive sample into major topics and meaningful subtopics, then Nano labels and summarizes the clusters. Optional focus keywords only strengthen matching archive text in the embedding step and prioritize supported matching topics afterward; they are never inserted into generative instructions. The app maps the full retrieved archive back to the clusters for counts, sentiment, authors, commenters, and popular posts.</div>
         </div>
 
         <details class="llm-settings">
@@ -132,7 +138,7 @@
           <div class="section-head">
             <div>
               <h3>Topic details</h3>
-              <div class="chart-sub">Topics and subtopics are ranked by matched discussion volume. Opinions are synthesized by OpenAI; counts and sentiment are calculated from archive rows.</div>
+              <div class="chart-sub">Topics and subtopics are ranked by matched discussion volume, with optional focus matches prioritized. Opinions are synthesized by OpenAI; counts and sentiment are calculated from archive rows.</div>
             </div>
           </div>
           <div id="topicCards" class="topic-card-grid"></div>
