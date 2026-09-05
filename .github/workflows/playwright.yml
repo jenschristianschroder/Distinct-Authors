@@ -31,10 +31,12 @@ jobs:
           node-version: 22
       - name: Install dependencies
         run: npm install --no-audit --no-fund
+      - name: Run backend regression tests
+        run: npm run test:unit
       - name: Install Chromium
         run: npx playwright install --with-deps chromium
       - name: Run Playwright tests
-        run: npx playwright test
+        run: npm run test:e2e
       - name: Upload Playwright report on failure
         if: failure()
         uses: actions/upload-artifact@v4
