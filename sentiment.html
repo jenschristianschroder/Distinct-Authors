@@ -73,22 +73,18 @@
         </div>
 
         <details class="llm-settings">
-          <summary>LLM summary settings</summary>
+          <summary>AI opinion summary</summary>
           <div class="grid llm-grid">
             <div>
-              <label for="llmEndpoint">OpenAI-compatible chat endpoint</label>
-              <input id="llmEndpoint" type="text" placeholder="https://…/v1/chat/completions" autocomplete="off" />
+              <label for="llmBackend">Vercel backend URL</label>
+              <input id="llmBackend" type="url" placeholder="https://your-project.vercel.app/api/summarize" autocomplete="off" />
             </div>
             <div>
-              <label for="llmModel">Model</label>
-              <input id="llmModel" type="text" placeholder="Provider model name" autocomplete="off" />
+              <label for="llmToken">Backend access token</label>
+              <input id="llmToken" type="password" placeholder="Your custom APP_ACCESS_TOKEN" autocomplete="off" />
             </div>
-            <div>
-              <label for="llmKey">API key</label>
-              <input id="llmKey" type="password" placeholder="Held only in this tab" autocomplete="off" />
-            </div>
-            <button id="llmButton" type="button" class="secondary">Summarize opinions with LLM</button>
-            <p class="muted tiny">The key is not written to the repository or localStorage. Your selected excerpts are sent directly from this browser tab to the endpoint you enter.</p>
+            <button id="llmButton" type="button" class="secondary">Summarize opinions with OpenAI</button>
+            <p class="muted tiny">Your OpenAI API key stays on Vercel as a server-side environment variable and is never sent to this page. The backend URL may be remembered in this browser; the access token is kept only for this tab session.</p>
           </div>
         </details>
 
@@ -184,7 +180,7 @@
 
       <div class="panel chart-card hidden" id="voicesSection">
         <h3>Main voices by sentiment</h3>
-        <div class="chart-sub">Top post authors and top commenters are shown separately within each sentiment group.</div>
+        <div class="chart-sub">Authors and commenters with the most topic-matching contributions in each sentiment group.</div>
         <div class="voice-grid">
           <div class="voice-column positive-border"><h4>Positive</h4><div id="positiveVoices"></div></div>
           <div class="voice-column neutral-border"><h4>Neutral</h4><div id="neutralVoices"></div></div>
@@ -211,6 +207,5 @@
 </main>
 
 <script src="sentiment.js"></script>
-<script src="sentiment-voices.js"></script>
 </body>
 </html>
