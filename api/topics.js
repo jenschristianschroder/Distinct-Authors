@@ -1,8 +1,44 @@
 'use strict';
 
 const handler = require('./topics-v2');
+const MAX_RANGE_DAYS = 30;
+
+function parsedBody(req) {
+  if (!req) return {};
+  if (req.body && typeof req.body === 'object') return req.body;
+  if (typeof req.body === 'string') {
+    try { return JSON.parse(req.body); } catch { return {}; }
+  }
+  return {};
+}
+
+function inclusiveDays(start, end) {
+  if (!/^\d{4}-\d{2}-\d{2}$/.test(String(start || '')) || !/^\d{4}-\d{2}-\d{2}$/.test(String(end || ''))) return NaN;
+  const a = Date.parse(`${start}T00:00:00Z`);
+  const b = Date.parse(`${end}T00:00:00Z`);
+  if (!Number.isFinite(a) || !Number.isFinite(b)) return NaN;
+  return Math.floor((b - a) / 86400000) + 1;
+}
+
+function setRangeErrorCors(req, res) {
+  const origin = req?.headers?.origin;
+  if (origin) {
+    res.setHeader('Access-Control-Allow-Origin', origin);
+    res.setHeader('Vary', 'Origin');
+  }
+  res.setHeader('Cache-Control', 'no-store');
+}
 
 module.exports = async function topics(req, res) {
+  if (req?.method === 'POST') {
+    const body = parsedBody(req);
+    const days = inclusiveDays(body.start, body.end);
+    if (Number.isFinite(days) && days > MAX_RANGE_DAYS) {
+      setRangeErrorCors(req, res);
+      return res.status(400).json({ error: `Choose a date range of ${MAX_RANGE_DAYS} days or less (one month maximum).` });
+    }
+  }
+
   const originalJson = res.json.bind(res);
   res.json = function topicsJson(payload) {
     if (Number(res.statusCode || 200) === 200 && payload && Array.isArray(payload.topics) && !String(payload.overview || '').trim()) {
@@ -16,4 +52,4 @@ module.exports = async function topics(req, res) {
   finally { res.json = originalJson; }
 };
 
-module.exports._test = handler._test;
+module.exports._test = { ...(handler._test || {}), inclusiveDays, MAX_RANGE_DAYS };
