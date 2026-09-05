@@ -221,3 +221,74 @@ details > summary::-webkit-details-marker { display: none; }
 }
 footer { margin-top: 16px; padding: 0 4px; color: var(--muted); font-size: 0.87rem; }
 code { word-break: break-word; }
+
+/* Phone layout: every multi-column section collapses cleanly. */
+@media (max-width: 639px) {
+  main { padding: 14px 10px 48px; }
+  .hero { padding: 18px 16px; border-radius: 20px; }
+  .panel, .dashboard, .app-grid, .chart-card, .chart-shell { min-width: 0; }
+
+  .grid.two { grid-template-columns: 1fr; }
+
+  .summary-header {
+    display: grid;
+    grid-template-columns: 1fr;
+  }
+
+  .kpi-grid { grid-template-columns: 1fr; }
+  .kpi.featured { grid-column: auto; }
+
+  .aggregate-grid { grid-template-columns: 1fr; }
+
+  .bar-top {
+    flex-wrap: wrap;
+    align-items: baseline;
+  }
+
+  .table-wrap {
+    overflow: visible;
+    border: 0;
+    border-radius: 0;
+  }
+  table,
+  tbody {
+    display: block;
+    width: 100%;
+  }
+  thead { display: none; }
+  tbody {
+    display: grid;
+    gap: 12px;
+  }
+  tbody tr {
+    display: block;
+    width: 100%;
+    border: 1px solid var(--line);
+    border-radius: 14px;
+    overflow: hidden;
+    background: var(--card2);
+  }
+  tbody tr + tr td { border-top: 1px solid var(--line); }
+  tbody td {
+    display: flex;
+    width: 100%;
+    justify-content: space-between;
+    align-items: baseline;
+    gap: 16px;
+    padding: 9px 12px;
+    text-align: right !important;
+    overflow-wrap: anywhere;
+  }
+  tbody td:first-child { border-top: 0; }
+  tbody td::before {
+    flex: 0 0 auto;
+    color: var(--muted);
+    font-weight: 650;
+    text-align: left;
+  }
+  tbody td:nth-child(1)::before { content: "Rank"; }
+  tbody td:nth-child(2)::before { content: "Author"; }
+  tbody td:nth-child(3)::before { content: "Total"; }
+  tbody td:nth-child(4)::before { content: "Posts"; }
+  tbody td:nth-child(5)::before { content: "Comments"; }
+}
