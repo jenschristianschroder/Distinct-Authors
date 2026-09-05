@@ -1,0 +1,44 @@
+name: Sentiment Playwright tests
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'sentiment.html'
+      - 'sentiment.js'
+      - 'sentiment.css'
+      - 'api/**'
+      - 'tests/**'
+      - 'playwright.config.js'
+      - 'package.json'
+      - '.github/workflows/playwright.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  playwright:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    env:
+      APP_ACCESS_TOKEN: ${{ secrets.APP_ACCESS_TOKEN }}
+      LIVE_BASE_URL: https://distinct-authors.vercel.app
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - name: Install dependencies
+        run: npm install --no-audit --no-fund
+      - name: Install Chromium
+        run: npx playwright install --with-deps chromium
+      - name: Run Playwright tests
+        run: npx playwright test
+      - name: Upload Playwright report on failure
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: playwright-report
+          path: playwright-report/
+          retention-days: 7
