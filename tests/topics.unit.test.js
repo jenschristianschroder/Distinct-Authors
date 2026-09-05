@@ -3,6 +3,7 @@
 const test = require('node:test');
 const assert = require('node:assert/strict');
 const landscape = require('../lib/topic-landscape');
+const topicsApi = require('../api/topics');
 
 const posts = [
   { id:'p1', author:'alice', title:'Daily gem cap is broken', selftext:'The gem cap should be raised because progression is too slow.', score:20, num_comments:12 },
@@ -38,4 +39,10 @@ test('topic assignment separates gem cap and module discussion', () => {
 test('unknown authors are excluded from voice rankings', () => {
   const voices = landscape.rankVoices([{ author:'[unknown]' }, { author:'alice' }, { author:'alice' }, { author:'[deleted]' }]);
   assert.deepEqual(voices, [{ author:'alice', count:2 }]);
+});
+
+test('topic landscape range is capped at 30 inclusive days', () => {
+  assert.equal(topicsApi._test.MAX_RANGE_DAYS, 30);
+  assert.equal(topicsApi._test.inclusiveDays('2026-08-07', '2026-09-05'), 30);
+  assert.equal(topicsApi._test.inclusiveDays('2026-08-06', '2026-09-05'), 31);
 });
