@@ -50,6 +50,17 @@ test('semantic-ish topic variants recover wording that does not contain the lite
   assert.equal(_test.topicMatchScore({ title: 'Tournament rewards', selftext: 'Love the new league.' }, 'posts', ['Daily gem cap', 'daily ad gem limit']), 0);
 });
 
+test('single-word expansion terms do not inflate a multi-word topic', () => {
+  const strict = _test.strictTopicVariants({
+    topic: 'Daily gem cap',
+    terms: ['Daily gem cap', 'gem cap', 'gems'],
+    semanticAngles: ['daily ad gem limit']
+  });
+  assert.ok(strict.includes('Daily gem cap'));
+  assert.ok(strict.includes('gem cap'));
+  assert.equal(strict.includes('gems'), false);
+});
+
 test('archive metadata replaces an unknown extracted author', () => {
   const merged = _test.mergeArchiveRows(
     [{ id: 'abc', author: '[unknown]', title: 'Gem cap', sources: ['openai_web'] }],
