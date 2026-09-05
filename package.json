@@ -3,7 +3,7 @@
   "private": true,
   "version": "1.0.0",
   "scripts": {
-    "test:unit": "node --test tests/search.unit.test.js",
+    "test:unit": "node --test tests/*.unit.test.js",
     "test:e2e": "playwright test"
   },
   "dependencies": {
