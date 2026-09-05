@@ -1,4 +1,4 @@
-name: Sentiment Playwright tests
+name: Dashboard Playwright tests
 
 on:
   push:
@@ -7,6 +7,9 @@ on:
       - 'sentiment.html'
       - 'sentiment*.js'
       - 'sentiment.css'
+      - 'topics.html'
+      - 'topics.js'
+      - 'topics.css'
       - 'api/**'
       - 'lib/**'
       - 'tests/**'
