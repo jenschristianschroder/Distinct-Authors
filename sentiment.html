@@ -2,39 +2,38 @@
 <html lang="en">
 <head>
   <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+  <meta name="theme-color" content="#0f172a" />
   <title>Subreddit Sentiment & Opinion Analysis</title>
   <link rel="stylesheet" href="styles.css" />
   <link rel="stylesheet" href="sentiment.css" />
 </head>
 <body>
-<main class="shell">
-  <header class="hero">
-    <nav class="page-nav" aria-label="Dashboard pages">
-      <a href="index.html">Activity dashboard</a>
-      <a class="current" href="sentiment.html">Sentiment & opinions</a>
-    </nav>
-    <div>
-      <div class="eyebrow">Reddit topic research</div>
-      <h1>Subreddit Sentiment & Opinion Analysis</h1>
-      <p>Search a topic or concept in one subreddit, combine live AI web discovery with archive backfill, and inspect sentiment, recurring opinions, leading voices, popularity, and change over time.</p>
-    </div>
-  </header>
+<main>
+  <nav class="page-nav" aria-label="Dashboard pages">
+    <a href="index.html">Activity dashboard</a>
+    <span aria-current="page">Sentiment &amp; opinions</span>
+  </nav>
 
-  <div class="layout">
-    <aside class="panel controls-panel">
-      <div class="controls-head">
+  <section class="hero sentiment-hero">
+    <div class="eyebrow">Reddit topic research</div>
+    <h1>Subreddit Sentiment &amp; Opinion Analysis</h1>
+    <p class="subhead muted">Search a topic or concept in one subreddit, combine AI web discovery with archive backfill, and inspect sentiment, recurring opinions, leading voices, popularity, and change over time.</p>
+  </section>
+
+  <div class="app-grid">
+    <aside class="panel">
+      <div class="panel-pad grid">
         <div>
           <h2>Search</h2>
-          <p class="muted">Shorter date ranges improve speed and archive coverage.</p>
+          <p class="muted control-intro">Shorter date ranges improve speed and archive coverage.</p>
         </div>
-      </div>
 
-      <div class="grid">
         <div>
           <label for="subreddit">Subreddit</label>
           <input id="subreddit" type="text" value="TheTowerGame" autocomplete="off" autocapitalize="none" spellcheck="false" />
         </div>
+
         <div>
           <label for="topic">Topic or concept</label>
           <input id="topic" type="text" placeholder="e.g. Daily gem cap" autocomplete="off" />
@@ -79,11 +78,11 @@
           </select>
         </div>
 
-        <button id="run">Search & analyze</button>
+        <button id="run">Search &amp; analyze</button>
 
         <div class="info-box">
-          <strong style="display:block; margin-bottom:5px; color:var(--text)">How retrieval works</strong>
-          <div>OpenAI searches Reddit from multiple lexical and semantic angles. Arctic Shift then scans the selected date range and backfills matching posts plus comments from matched discussion threads. Results are deduplicated before analytics. The displayed post/comment totals are the analyzed sample and may be capped by “Max per type”; the coverage panel reports larger archive counts when available.</div>
+          <strong class="info-title">How retrieval works</strong>
+          <div>OpenAI searches Reddit from multiple lexical and semantic angles. Arctic Shift scans the selected date range and backfills matching posts plus comments from matched discussion threads. Results are deduplicated before analytics. The displayed post/comment totals are the analyzed sample and may be capped by “Max per type”; the coverage panel reports larger archive counts when available.</div>
         </div>
 
         <details class="llm-settings">
@@ -101,35 +100,59 @@
           </div>
         </details>
 
-        <div id="progressWrap" class="progress-wrap hidden">
-          <div class="progress"><span id="bar"></span></div>
+        <div id="progressWrap" class="status-wrap hidden">
+          <div class="progress"><div id="bar" class="bar"></div></div>
           <div id="status" class="status"></div>
         </div>
         <div id="error" class="error hidden"></div>
       </div>
     </aside>
 
-    <section class="content">
-      <section id="results" class="hidden">
-        <div class="panel result-head">
+    <section class="dashboard">
+      <div id="results" class="panel hidden">
+        <div class="summary-header">
           <div>
-            <h2 id="summaryTitle">Topic analysis</h2>
-            <div id="summaryRange" class="muted"></div>
+            <div class="summary-title" id="summaryTitle">Topic analysis</div>
+            <div class="summary-range" id="summaryRange"></div>
           </div>
-          <div id="sampleMeta" class="result-count"></div>
+          <div class="summary-range" id="sampleMeta"></div>
         </div>
 
-        <div class="kpis">
-          <div class="kpi accent"><span>Analyzed contributions</span><strong id="kpiItems">0</strong><small id="kpiItemsSub"></small></div>
-          <div class="kpi"><span>Positive</span><strong id="kpiPositive" class="positive-text">0</strong><small id="kpiPositiveSub"></small></div>
-          <div class="kpi"><span>Neutral</span><strong id="kpiNeutral" class="neutral-text">0</strong><small id="kpiNeutralSub"></small></div>
-          <div class="kpi"><span>Negative</span><strong id="kpiNegative" class="negative-text">0</strong><small id="kpiNegativeSub"></small></div>
-          <div class="kpi"><span>Unique known voices</span><strong id="kpiAuthors">0</strong><small>Resolved authors and commenters in sample</small></div>
-          <div class="kpi"><span>Average post score</span><strong id="kpiPostScore">0</strong><small>For matched and linked posts</small></div>
+        <div class="kpi-grid sentiment-kpis">
+          <div class="kpi featured">
+            <div class="kpi-label">Analyzed contributions</div>
+            <div class="kpi-value" id="kpiItems">—</div>
+            <div class="kpi-sub" id="kpiItemsSub"></div>
+          </div>
+          <div class="kpi">
+            <div class="kpi-label">Positive</div>
+            <div class="kpi-value positive-text" id="kpiPositive">—</div>
+            <div class="kpi-sub" id="kpiPositiveSub"></div>
+          </div>
+          <div class="kpi">
+            <div class="kpi-label">Neutral</div>
+            <div class="kpi-value neutral-text" id="kpiNeutral">—</div>
+            <div class="kpi-sub" id="kpiNeutralSub"></div>
+          </div>
+          <div class="kpi">
+            <div class="kpi-label">Negative</div>
+            <div class="kpi-value negative-text" id="kpiNegative">—</div>
+            <div class="kpi-sub" id="kpiNegativeSub"></div>
+          </div>
+          <div class="kpi">
+            <div class="kpi-label">Unique known voices</div>
+            <div class="kpi-value" id="kpiAuthors">—</div>
+            <div class="kpi-sub">Resolved authors and commenters in sample</div>
+          </div>
+          <div class="kpi">
+            <div class="kpi-label">Average post score</div>
+            <div class="kpi-value" id="kpiPostScore">—</div>
+            <div class="kpi-sub">For matched and linked posts</div>
+          </div>
         </div>
 
         <div id="coverageNote" class="coverage-note"></div>
-      </section>
+      </div>
 
       <div class="panel chart-card hidden" id="llmSummaryCard">
         <h3>AI opinion summary</h3>
@@ -137,24 +160,29 @@
         <div id="llmSummary" class="llm-summary"></div>
       </div>
 
-      <div class="charts-grid hidden" id="sentimentCharts">
+      <div class="chart-grid two hidden" id="sentimentCharts">
         <div class="panel chart-card">
           <h3>Sentiment over time</h3>
           <div id="timelineSubtitle" class="chart-sub"></div>
-          <div id="timelineChart" class="chart"></div>
+          <div class="chart-shell"><div id="timelineChart"></div></div>
+          <div class="legend">
+            <span><span class="swatch positive-bg"></span>Positive</span>
+            <span><span class="swatch neutral-bg"></span>Neutral</span>
+            <span><span class="swatch negative-bg"></span>Negative</span>
+          </div>
         </div>
         <div class="panel chart-card">
           <h3>Sentiment by post popularity</h3>
           <div class="chart-sub">Contributions grouped by the linked post’s Reddit score quartile.</div>
-          <div id="popularityChart" class="chart"></div>
+          <div class="chart-shell"><div id="popularityChart"></div></div>
         </div>
       </div>
 
-      <div class="charts-grid hidden" id="opinionsSection">
+      <div class="split-grid hidden" id="opinionsSection">
         <div class="panel chart-card">
           <h3>Common opinion phrases</h3>
           <div class="chart-sub">Repeated two-word phrases after lightweight stop-word filtering.</div>
-          <div id="phrases" class="phrases"></div>
+          <div id="phrases" class="phrase-list"></div>
         </div>
         <div class="panel chart-card">
           <h3>Most popular matched posts</h3>
@@ -181,7 +209,7 @@
 
       <div class="panel hidden" id="logPanel">
         <details>
-          <summary>Retrieval log & web sources</summary>
+          <summary>Retrieval log &amp; web sources</summary>
           <div id="log" class="log"></div>
         </details>
       </div>
@@ -192,5 +220,6 @@
 </main>
 <script src="sentiment.js"></script>
 <script src="sentiment-author-fix.js"></script>
+<script src="sentiment-markdown.js"></script>
 </body>
 </html>
