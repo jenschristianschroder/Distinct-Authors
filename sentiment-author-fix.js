@@ -42,31 +42,44 @@
     }).join('');
   };
 
-  const baseRenderCoverage = renderCoverage;
   renderCoverage = function (data) {
-    baseRenderCoverage(data);
     const stats = data.stats || {};
-    const notes = [];
-    const shownComments = Array.isArray(data.comments) ? data.comments.length : Number(stats.mergedComments || 0);
-    const directTopic = Number(stats.archiveTopicComments || 0);
-    const contextual = Number(stats.archiveThreadComments || 0);
-    const scanned = Number(stats.archiveBroadCommentsScanned || 0);
-    if (scanned) {
-      notes.push(`Archive scan inspected ${fmt(scanned)} comments in the selected period.`);
-    }
-    if (directTopic) {
-      notes.push(`${fmt(directTopic)} archived comments directly matched the topic or a high-precision variant.`);
-    }
-    if (contextual) {
-      notes.push(`${fmt(contextual)} archived comments were found inside matched topic threads.`);
-    }
-    if (Math.max(directTopic, contextual) > shownComments) {
-      notes.push(`${fmt(shownComments)} comments are analyzed because of the selected Max per type limit; direct topic matches are prioritized before contextual replies.`);
-    }
+    const terms = (data.terms || []).map(escapeHtml).join(', ');
+    const postsShown = Array.isArray(data.posts) ? data.posts.length : Number(stats.mergedPosts || 0);
+    const commentsShown = Array.isArray(data.comments) ? data.comments.length : Number(stats.mergedComments || 0);
+    const directTopicPosts = Number(stats.archiveTopicPosts || 0);
+    const directTopicComments = Number(stats.archiveTopicComments || 0);
+    const contextualComments = Number(stats.archiveThreadComments || 0);
+    const scannedPosts = Number(stats.archiveBroadPostsScanned || 0);
+    const scannedComments = Number(stats.archiveBroadCommentsScanned || 0);
+    const webSources = Number(stats.webSources || 0);
+    const livePosts = Number(stats.redditLivePosts || 0);
+    const liveComments = Number(stats.redditLiveComments || 0);
     const unresolved = Number(stats.unresolvedPostAuthors || 0) + Number(stats.unresolvedCommentAuthors || 0);
+
+    const headline = [
+      `${fmt(postsShown)} posts + ${fmt(commentsShown)} comments analyzed`,
+      webSources ? `${fmt(webSources)} Reddit URLs found by AI web search` : '',
+      (livePosts || liveComments) ? `${fmt(livePosts)} live posts + ${fmt(liveComments)} live comments fetched directly` : ''
+    ].filter(Boolean);
+
+    const notes = [];
+    if (scannedPosts || scannedComments) {
+      notes.push(`Arctic Shift scan inspected ${fmt(scannedPosts)} posts and ${fmt(scannedComments)} comments in the selected period.`);
+    }
+    if (directTopicPosts || directTopicComments) {
+      notes.push(`${fmt(directTopicPosts)} archived posts and ${fmt(directTopicComments)} archived comments directly matched the topic or a high-precision variant.`);
+    }
+    if (contextualComments) {
+      notes.push(`${fmt(contextualComments)} archived comments were found inside matched topic threads.`);
+    }
+    if (Math.max(directTopicComments, contextualComments) > commentsShown) {
+      notes.push(`${fmt(commentsShown)} comments are analyzed because of the selected Max per type limit; direct topic matches are prioritized before contextual replies.`);
+    }
     if (unresolved) {
       notes.push(`${fmt(unresolved)} contribution author${unresolved === 1 ? '' : 's'} could not be resolved after archive lookup and ${unresolved === 1 ? 'is' : 'are'} excluded from voice counts.`);
     }
-    if (notes.length) $('coverageNote').insertAdjacentHTML('beforeend', `<br><span class="muted tiny">${notes.map(escapeHtml).join(' ')}</span>`);
+
+    $('coverageNote').innerHTML = `<strong>Hybrid coverage:</strong> ${headline.join(' · ')}${notes.length ? `<br><span class="muted tiny">${notes.map(escapeHtml).join(' ')}</span>` : ''}${terms ? `<br><span class="muted tiny">AI-generated archive search terms: ${terms}</span>` : ''}`;
   };
 })();
