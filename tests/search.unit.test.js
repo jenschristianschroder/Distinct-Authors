@@ -101,3 +101,14 @@ test('direct Reddit data wins over AI-extracted metadata during deduplication', 
   assert.equal(merged.source, 'reddit_live');
   assert.deepEqual(new Set(merged.sources), new Set(['openai_web', 'reddit_live']));
 });
+
+test('non-web OpenAI calls are routed to Nano', () => {
+  const routed = _test.routedOpenAIBody({ model:'gpt-5.6-luna', input:'summarize', max_output_tokens:500 });
+  assert.equal(routed.model, 'gpt-5-nano');
+});
+
+test('web-search OpenAI calls stay on the web-search model', () => {
+  const body = { model:'gpt-5.6-luna', tools:[{ type:'web_search' }], input:'search Reddit' };
+  assert.equal(_test.routedOpenAIBody(body), body);
+  assert.equal(_test.hasWebSearch(body), true);
+});
