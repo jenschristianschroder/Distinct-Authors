@@ -1,0 +1,215 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+  <meta name="theme-color" content="#0f172a" />
+  <title>Subreddit Sentiment & Opinion Analysis</title>
+  <link rel="stylesheet" href="styles.css" />
+  <link rel="stylesheet" href="sentiment.css" />
+</head>
+<body>
+<main>
+  <nav class="page-nav">
+    <a href="index.html">Activity dashboard</a>
+    <span>Sentiment & opinions</span>
+  </nav>
+
+  <section class="hero">
+    <h1>Subreddit Sentiment & Opinion Analysis</h1>
+    <p class="subhead muted">Explore how a subreddit talks about a topic: sentiment mix, major authors and commenters, recurring opinions, changes over time, and how sentiment differs between popular and less-popular posts.</p>
+  </section>
+
+  <div class="app-grid">
+    <aside class="panel">
+      <div class="panel-pad grid">
+        <div>
+          <label for="subreddit">Subreddit</label>
+          <input id="subreddit" type="text" value="TheTowerGame" autocomplete="off" autocapitalize="none" spellcheck="false" />
+        </div>
+
+        <div>
+          <label for="topic">Topic or phrase</label>
+          <input id="topic" type="text" placeholder="e.g. tournament, modules, ads" autocomplete="off" />
+        </div>
+
+        <div class="grid two">
+          <div>
+            <label for="start">Start date</label>
+            <input id="start" type="date" />
+          </div>
+          <div>
+            <label for="end">End date</label>
+            <input id="end" type="date" />
+          </div>
+        </div>
+
+        <div class="grid two">
+          <div>
+            <label for="maxItems">Max matching items</label>
+            <select id="maxItems">
+              <option value="250">250</option>
+              <option value="500" selected>500</option>
+              <option value="1000">1,000</option>
+              <option value="2000">2,000</option>
+            </select>
+          </div>
+          <div>
+            <label for="bucket">Time buckets</label>
+            <select id="bucket">
+              <option value="auto" selected>Auto</option>
+              <option value="day">Day</option>
+              <option value="week">Week</option>
+              <option value="month">Month</option>
+            </select>
+          </div>
+        </div>
+
+        <button id="run">Analyze topic</button>
+
+        <div class="info-box">
+          <strong style="display:block; margin-bottom:5px; color:var(--text)">How sentiment is scored</strong>
+          <div>Sentiment is calculated locally in your browser with a lightweight word/phrase lexicon. It is directional, not a substitute for human reading. The LLM summary is optional and uses representative excerpts from the retrieved sample.</div>
+        </div>
+
+        <details class="llm-settings">
+          <summary>LLM summary settings</summary>
+          <div class="grid llm-grid">
+            <div>
+              <label for="llmEndpoint">OpenAI-compatible chat endpoint</label>
+              <input id="llmEndpoint" type="text" placeholder="https://…/v1/chat/completions" autocomplete="off" />
+            </div>
+            <div>
+              <label for="llmModel">Model</label>
+              <input id="llmModel" type="text" placeholder="Provider model name" autocomplete="off" />
+            </div>
+            <div>
+              <label for="llmKey">API key</label>
+              <input id="llmKey" type="password" placeholder="Held only in this tab" autocomplete="off" />
+            </div>
+            <button id="llmButton" type="button" class="secondary">Summarize opinions with LLM</button>
+            <p class="muted tiny">The key is not written to the repository or localStorage. Your selected excerpts are sent directly from this browser tab to the endpoint you enter.</p>
+          </div>
+        </details>
+
+        <div id="progressWrap" class="status-wrap hidden">
+          <div class="progress"><div id="bar" class="bar"></div></div>
+          <div id="status" class="status"></div>
+        </div>
+        <div id="error" class="error hidden"></div>
+      </div>
+    </aside>
+
+    <section class="dashboard">
+      <div id="results" class="panel hidden">
+        <div class="summary-header">
+          <div>
+            <div class="summary-title" id="summaryTitle">Topic overview</div>
+            <div class="summary-range" id="summaryRange"></div>
+          </div>
+          <div class="summary-range" id="sampleMeta"></div>
+        </div>
+
+        <div class="kpi-grid sentiment-kpis">
+          <div class="kpi featured">
+            <div class="kpi-label">Matching contributions</div>
+            <div class="kpi-value" id="kpiItems">—</div>
+            <div class="kpi-sub" id="kpiItemsSub"></div>
+          </div>
+          <div class="kpi">
+            <div class="kpi-label">Positive</div>
+            <div class="kpi-value positive-text" id="kpiPositive">—</div>
+            <div class="kpi-sub" id="kpiPositiveSub"></div>
+          </div>
+          <div class="kpi">
+            <div class="kpi-label">Neutral</div>
+            <div class="kpi-value neutral-text" id="kpiNeutral">—</div>
+            <div class="kpi-sub" id="kpiNeutralSub"></div>
+          </div>
+          <div class="kpi">
+            <div class="kpi-label">Negative</div>
+            <div class="kpi-value negative-text" id="kpiNegative">—</div>
+            <div class="kpi-sub" id="kpiNegativeSub"></div>
+          </div>
+          <div class="kpi">
+            <div class="kpi-label">Unique voices</div>
+            <div class="kpi-value" id="kpiAuthors">—</div>
+            <div class="kpi-sub">Authors and commenters in sample</div>
+          </div>
+          <div class="kpi">
+            <div class="kpi-label">Average post score</div>
+            <div class="kpi-value" id="kpiPostScore">—</div>
+            <div class="kpi-sub">For matched and linked posts</div>
+          </div>
+        </div>
+      </div>
+
+      <div id="llmSummaryCard" class="panel chart-card hidden">
+        <h3>LLM opinion summary</h3>
+        <div class="chart-sub">Themes synthesized from representative excerpts in the current sample.</div>
+        <div id="llmSummary" class="llm-summary"></div>
+      </div>
+
+      <div class="chart-grid two hidden" id="sentimentCharts">
+        <div class="panel chart-card">
+          <h3>Sentiment over time</h3>
+          <div class="chart-sub" id="timelineSubtitle">Share of positive, neutral, and negative contributions by period.</div>
+          <div class="chart-shell"><div id="timelineChart"></div></div>
+          <div class="legend">
+            <span><span class="swatch positive-bg"></span>Positive</span>
+            <span><span class="swatch neutral-bg"></span>Neutral</span>
+            <span><span class="swatch negative-bg"></span>Negative</span>
+          </div>
+        </div>
+
+        <div class="panel chart-card">
+          <h3>Sentiment by post popularity</h3>
+          <div class="chart-sub">Sentiment mix grouped by linked post score quartile.</div>
+          <div class="chart-shell"><div id="popularityChart"></div></div>
+        </div>
+      </div>
+
+      <div class="split-grid hidden" id="opinionsSection">
+        <div class="panel chart-card">
+          <h3>Common opinion phrases</h3>
+          <div class="chart-sub">Frequent non-trivial phrases in topic-matching text.</div>
+          <div id="phrases" class="phrase-list"></div>
+        </div>
+        <div class="panel chart-card">
+          <h3>Most popular matched posts</h3>
+          <div class="chart-sub">Matched or linked posts ranked by Reddit score.</div>
+          <div id="popularPosts" class="post-list"></div>
+        </div>
+      </div>
+
+      <div class="panel chart-card hidden" id="voicesSection">
+        <h3>Main voices by sentiment</h3>
+        <div class="chart-sub">Authors and commenters with the most topic-matching contributions in each sentiment group.</div>
+        <div class="voice-grid">
+          <div class="voice-column positive-border"><h4>Positive</h4><div id="positiveVoices"></div></div>
+          <div class="voice-column neutral-border"><h4>Neutral</h4><div id="neutralVoices"></div></div>
+          <div class="voice-column negative-border"><h4>Negative</h4><div id="negativeVoices"></div></div>
+        </div>
+      </div>
+
+      <div class="panel chart-card hidden" id="evidenceSection">
+        <h3>Representative contributions</h3>
+        <div class="chart-sub">Highest-scoring and most sentiment-expressive excerpts from the current sample.</div>
+        <div class="evidence-grid" id="evidenceGrid"></div>
+      </div>
+
+      <div class="panel hidden" id="logPanel">
+        <details>
+          <summary>Request log</summary>
+          <div id="log" class="log"></div>
+        </details>
+      </div>
+    </section>
+  </div>
+
+  <footer>Source: Arctic Shift public Reddit archive. Search results are a bounded sample controlled by your date range and item limit. Sentiment labels are heuristic unless you independently review the underlying text.</footer>
+</main>
+
+<script src="sentiment.js"></script>
+</body>
+</html>
