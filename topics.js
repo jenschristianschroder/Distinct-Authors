@@ -119,18 +119,20 @@ function render(data){
   $('kpiContributions').textContent=fmt(total);
   $('kpiContributionsSub').textContent=`${fmt(stats.posts_scanned)} posts + ${fmt(stats.comments_scanned)} comments`;
   $('kpiTopics').textContent=fmt(stats.topics_found);
+  if($('kpiTopicsSub'))$('kpiTopicsSub').textContent=stats.target_topics?`${stats.topic_mode==='auto'?'Auto target':'Requested'}: ${fmt(stats.target_topics)} topics/subtopics`:'Distinct LLM-clustered discussion areas';
   $('kpiVoices').textContent=fmt(stats.known_voices);
   $('kpiPositive').textContent=fmt(overall.positive);$('kpiPositiveSub').textContent=pct(overall.positive,total);
   $('kpiNeutral').textContent=fmt(overall.neutral);$('kpiNeutralSub').textContent=pct(overall.neutral,total);
   $('kpiNegative').textContent=fmt(overall.negative);$('kpiNegativeSub').textContent=pct(overall.negative,total);
-  $('coverage').innerHTML=`<strong>Archive coverage:</strong> ${fmt(stats.posts_scanned)} posts and ${fmt(stats.comments_scanned)} comments scanned. ${fmt(stats.assigned_contributions)} contributions received a primary assignment to one of the discovered topics.${stats.archive_failures?` <span class="negative-text">${fmt(stats.archive_failures)} archive slices failed.</span>`:''}`;
+  const targetText=stats.target_topics?` Topic discovery targeted ${fmt(stats.target_topics)} ${stats.topic_mode==='auto'?'automatically scaled ':''}topics/subtopics.`:'';
+  $('coverage').innerHTML=`<strong>Archive coverage:</strong> ${fmt(stats.posts_scanned)} posts and ${fmt(stats.comments_scanned)} comments scanned.${targetText} ${fmt(stats.assigned_contributions)} contributions received a primary assignment to one of the discovered topics.${stats.archive_failures?` <span class="negative-text">${fmt(stats.archive_failures)} archive slices failed.</span>`:''}`;
   renderOverview(data);renderShare(data.topics||[]);renderTopicSentiment(data.topics||[]);renderTopicCards(data);renderPhrases(data);renderCaveats(data);
   $('results').classList.remove('hidden');
 }
 
 async function run(){
   $('error').classList.add('hidden');$('results').classList.add('hidden');
-  const subreddit=$('subreddit').value.trim().replace(/^r\//i,''),start=$('start').value,end=$('end').value,topics=Number($('topicCount').value||8);
+  const subreddit=$('subreddit').value.trim().replace(/^r\//i,''),start=$('start').value,end=$('end').value,topics=$('topicCount').value||'auto';
   if(!subreddit||!start||!end)return showError('Enter a subreddit and date range.');
   const days=Math.floor((new Date(`${end}T00:00:00Z`)-new Date(`${start}T00:00:00Z`))/86400000)+1;
   if(!Number.isFinite(days)||days<1)return showError('End date must be on or after start date.');
@@ -139,7 +141,7 @@ async function run(){
   try{
     setProgress(12,'Scanning subreddit archive…');
     const promise=backendAnalyze({subreddit,start,end,topics});
-    const timer=setTimeout(()=>setProgress(55,'Clustering discussion topics and opinions with OpenAI…'),5000);
+    const timer=setTimeout(()=>setProgress(55,'Clustering detailed topics, subtopics, and opinions with OpenAI…'),5000);
     const data=await promise;clearTimeout(timer);
     setProgress(88,'Mapping archive activity back to discovered topics…');
     render(data);setProgress(100,'Topic landscape ready.');
