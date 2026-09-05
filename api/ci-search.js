@@ -49,10 +49,10 @@ module.exports = async function ciSearch(req, res) {
     body: {
       subreddit: 'TheTowerGame',
       topic: 'Daily gem cap',
-      start: '2026-08-20',
+      start: '2026-08-06',
       end: '2026-09-05',
-      depth: 'standard',
-      maxItems: 100
+      depth: 'thorough',
+      maxItems: 500
     }
   };
 
