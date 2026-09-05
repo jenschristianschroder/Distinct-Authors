@@ -5,7 +5,7 @@ on:
     branches: [main]
     paths:
       - 'sentiment.html'
-      - 'sentiment.js'
+      - 'sentiment*.js'
       - 'sentiment.css'
       - 'api/**'
       - 'lib/**'
