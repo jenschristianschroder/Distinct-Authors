@@ -52,8 +52,7 @@
     }
 
     for (const rawLine of lines) {
-      const line = rawLine.trimEnd();
-      const trimmed = line.trim();
+      const trimmed = rawLine.trim();
       if (!trimmed) {
         flushParagraph();
         flushList();
@@ -95,27 +94,14 @@
     return fragment;
   }
 
-  let rendering = false;
-  let lastSource = '';
-
   function renderCurrentText() {
-    if (rendering) return;
+    if (target.childNodes.length !== 1 || target.firstChild.nodeType !== Node.TEXT_NODE) return;
     const source = target.textContent || '';
     if (!source.trim()) return;
-    if (target.dataset.markdownRendered === 'true' && source === lastSource) return;
-    lastSource = source;
-    rendering = true;
     target.replaceChildren(renderMarkdown(source));
-    target.dataset.markdownRendered = 'true';
-    rendering = false;
   }
 
-  const observer = new MutationObserver(() => {
-    if (rendering) return;
-    target.dataset.markdownRendered = 'false';
-    queueMicrotask(renderCurrentText);
-  });
-
+  const observer = new MutationObserver(() => queueMicrotask(renderCurrentText));
   observer.observe(target, { childList: true, characterData: true, subtree: true });
   renderCurrentText();
 })();
