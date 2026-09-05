@@ -47,11 +47,13 @@
         </div>
 
         <div>
-          <label for="topicCount">Number of topics</label>
+          <label for="topicCount">Topic granularity</label>
           <select id="topicCount">
-            <option value="6">6</option>
-            <option value="8" selected>8</option>
-            <option value="10">10</option>
+            <option value="auto" selected>Auto — scale with subreddit activity</option>
+            <option value="8">8 — broad themes</option>
+            <option value="12">12 — medium detail</option>
+            <option value="16">16 — detailed</option>
+            <option value="20">20 — maximum detail</option>
           </select>
         </div>
 
@@ -59,7 +61,7 @@
 
         <div class="info-box">
           <strong class="info-title">How it works</strong>
-          <div>Arctic Shift scans posts and comments in the selected period. OpenAI clusters a representative archive sample into major topics and recurring opinions. The app then maps the full retrieved archive back to those topics for counts, sentiment, authors, commenters, and popular posts.</div>
+          <div>Arctic Shift scans posts and comments in the selected period. OpenAI clusters a representative archive sample into major topics and meaningful subtopics, then the app maps the full retrieved archive back to those clusters for counts, sentiment, authors, commenters, and popular posts. Auto mode scales from about 8 to 20 topics based on corpus size.</div>
         </div>
 
         <details class="llm-settings">
@@ -97,7 +99,7 @@
           </div>
           <div class="kpi-grid topics-kpis">
             <div class="kpi featured"><div class="kpi-label">Archive contributions scanned</div><div class="kpi-value" id="kpiContributions">—</div><div class="kpi-sub" id="kpiContributionsSub"></div></div>
-            <div class="kpi"><div class="kpi-label">Topics found</div><div class="kpi-value" id="kpiTopics">—</div><div class="kpi-sub">Distinct LLM-clustered discussion areas</div></div>
+            <div class="kpi"><div class="kpi-label">Topics found</div><div class="kpi-value" id="kpiTopics">—</div><div class="kpi-sub" id="kpiTopicsSub">Distinct LLM-clustered discussion areas</div></div>
             <div class="kpi"><div class="kpi-label">Known voices</div><div class="kpi-value" id="kpiVoices">—</div><div class="kpi-sub">Resolved post authors and commenters</div></div>
             <div class="kpi"><div class="kpi-label">Positive</div><div class="kpi-value positive-text" id="kpiPositive">—</div><div class="kpi-sub" id="kpiPositiveSub"></div></div>
             <div class="kpi"><div class="kpi-label">Neutral</div><div class="kpi-value neutral-text" id="kpiNeutral">—</div><div class="kpi-sub" id="kpiNeutralSub"></div></div>
@@ -130,7 +132,7 @@
           <div class="section-head">
             <div>
               <h3>Topic details</h3>
-              <div class="chart-sub">Topics are ranked by matched discussion volume. Opinions are synthesized by OpenAI; counts and sentiment are calculated from archive rows.</div>
+              <div class="chart-sub">Topics and subtopics are ranked by matched discussion volume. Opinions are synthesized by OpenAI; counts and sentiment are calculated from archive rows.</div>
             </div>
           </div>
           <div id="topicCards" class="topic-card-grid"></div>
