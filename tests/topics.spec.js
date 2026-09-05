@@ -65,6 +65,18 @@ test('topic landscape renders discovered topics and opinions', async ({ page }) 
   await expect(page.locator('#error')).toBeHidden();
 });
 
+test('topic landscape date inputs enforce a 30-day inclusive maximum', async ({ page }) => {
+  await page.goto('/topics.html');
+  const start=page.getByLabel('Start date'),end=page.getByLabel('End date');
+  await start.fill('2026-08-01');
+  await expect(end).toHaveAttribute('min','2026-08-01');
+  await expect(end).toHaveAttribute('max','2026-08-30');
+  await end.fill('2026-09-05');
+  await expect(start).toHaveValue('2026-08-07');
+  await expect(start).toHaveAttribute('min','2026-08-07');
+  await expect(start).toHaveAttribute('max','2026-09-05');
+});
+
 test('topic landscape has no horizontal overflow on phone', async ({ page }) => {
   await page.setViewportSize({width:390,height:844});
   await page.goto('/topics.html');
