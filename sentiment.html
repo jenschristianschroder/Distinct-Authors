@@ -17,7 +17,7 @@
 
   <section class="hero">
     <h1>Subreddit Sentiment & Opinion Analysis</h1>
-    <p class="subhead muted">Explore how a subreddit talks about a topic: sentiment mix, major authors and commenters, recurring opinions, changes over time, and how sentiment differs between popular and less-popular posts.</p>
+    <p class="subhead muted">Search Reddit semantically with OpenAI web search, fetch discovered Reddit threads directly when possible, backfill with Arctic Shift, then analyze sentiment, opinions, voices, time, and post popularity.</p>
   </section>
 
   <div class="app-grid">
@@ -29,8 +29,8 @@
         </div>
 
         <div>
-          <label for="topic">Topic or phrase</label>
-          <input id="topic" type="text" placeholder="e.g. tournament, modules, ads" autocomplete="off" />
+          <label for="topic">Topic or concept</label>
+          <input id="topic" type="text" placeholder="e.g. Gems, tournament rewards, modules" autocomplete="off" />
         </div>
 
         <div class="grid two">
@@ -46,12 +46,11 @@
 
         <div class="grid two">
           <div>
-            <label for="maxItems">Max matching items</label>
+            <label for="maxItems">Max per type</label>
             <select id="maxItems">
               <option value="250">250</option>
               <option value="500" selected>500</option>
-              <option value="1000">1,000</option>
-              <option value="2000">2,000</option>
+              <option value="600">600</option>
             </select>
           </div>
           <div>
@@ -65,26 +64,33 @@
           </div>
         </div>
 
-        <button id="run">Analyze topic</button>
+        <div>
+          <label for="searchDepth">Search depth</label>
+          <select id="searchDepth">
+            <option value="thorough" selected>Thorough — recommended</option>
+            <option value="standard">Standard — faster/cheaper</option>
+          </select>
+        </div>
+
+        <button id="run">Search & analyze</button>
 
         <div class="info-box">
-          <strong style="display:block; margin-bottom:5px; color:var(--text)">How sentiment is scored</strong>
-          <div>Sentiment is calculated locally in your browser with a lightweight word/phrase lexicon. It is directional, not a substitute for human reading. The LLM summary is optional and uses representative excerpts from the retrieved sample.</div>
+          <strong style="display:block; margin-bottom:5px; color:var(--text)">How retrieval works</strong>
+          <div>OpenAI searches Reddit from multiple lexical and semantic angles. The backend then tries to fetch discovered Reddit threads directly and runs Arctic Shift searches using AI-generated topic variants. Results are deduplicated before analytics. This improves coverage, especially for recent discussion, but cannot guarantee every Reddit post or comment.</div>
         </div>
 
         <details class="llm-settings">
-          <summary>AI opinion summary</summary>
+          <summary>AI search connection</summary>
           <div class="grid llm-grid">
             <div>
               <label for="llmBackend">Vercel backend URL</label>
-              <input id="llmBackend" type="url" placeholder="https://your-project.vercel.app/api/summarize" autocomplete="off" />
+              <input id="llmBackend" type="url" placeholder="https://distinct-authors.vercel.app/api/search" autocomplete="off" />
             </div>
             <div>
               <label for="llmToken">Backend access token</label>
-              <input id="llmToken" type="password" placeholder="Your custom APP_ACCESS_TOKEN" autocomplete="off" />
+              <input id="llmToken" type="password" placeholder="Your APP_ACCESS_TOKEN" autocomplete="off" />
             </div>
-            <button id="llmButton" type="button" class="secondary">Summarize opinions with OpenAI</button>
-            <p class="muted tiny">Your OpenAI API key stays on Vercel as a server-side environment variable and is never sent to this page. The backend URL may be remembered in this browser; the access token is kept only for this tab session.</p>
+            <p class="muted tiny">The OpenAI API key stays server-side on Vercel. The backend URL may be remembered locally; the access token is kept only for this browser tab.</p>
           </div>
         </details>
 
@@ -108,7 +114,7 @@
 
         <div class="kpi-grid sentiment-kpis">
           <div class="kpi featured">
-            <div class="kpi-label">Matching contributions</div>
+            <div class="kpi-label">Retrieved contributions</div>
             <div class="kpi-value" id="kpiItems">—</div>
             <div class="kpi-sub" id="kpiItemsSub"></div>
           </div>
@@ -138,11 +144,12 @@
             <div class="kpi-sub">For matched and linked posts</div>
           </div>
         </div>
+        <div id="coverageNote" class="coverage-note"></div>
       </div>
 
       <div id="llmSummaryCard" class="panel chart-card hidden">
-        <h3>LLM opinion summary</h3>
-        <div class="chart-sub">Themes synthesized from representative excerpts in the current sample.</div>
+        <h3>AI opinion summary</h3>
+        <div class="chart-sub">Themes synthesized from the hybrid Reddit sample.</div>
         <div id="llmSummary" class="llm-summary"></div>
       </div>
 
@@ -168,7 +175,7 @@
       <div class="split-grid hidden" id="opinionsSection">
         <div class="panel chart-card">
           <h3>Common opinion phrases</h3>
-          <div class="chart-sub">Frequent non-trivial phrases in topic-matching text.</div>
+          <div class="chart-sub">Frequent non-trivial phrases in the retrieved topic sample.</div>
           <div id="phrases" class="phrase-list"></div>
         </div>
         <div class="panel chart-card">
@@ -180,7 +187,7 @@
 
       <div class="panel chart-card hidden" id="voicesSection">
         <h3>Main voices by sentiment</h3>
-        <div class="chart-sub">Authors and commenters with the most topic-matching contributions in each sentiment group.</div>
+        <div class="chart-sub">Top post authors and commenters are shown separately within each locally classified sentiment group.</div>
         <div class="voice-grid">
           <div class="voice-column positive-border"><h4>Positive</h4><div id="positiveVoices"></div></div>
           <div class="voice-column neutral-border"><h4>Neutral</h4><div id="neutralVoices"></div></div>
@@ -190,22 +197,21 @@
 
       <div class="panel chart-card hidden" id="evidenceSection">
         <h3>Representative contributions</h3>
-        <div class="chart-sub">Highest-scoring and most sentiment-expressive excerpts from the current sample.</div>
+        <div class="chart-sub">High-scoring and sentiment-expressive excerpts from the retrieved sample.</div>
         <div class="evidence-grid" id="evidenceGrid"></div>
       </div>
 
       <div class="panel hidden" id="logPanel">
         <details>
-          <summary>Request log</summary>
+          <summary>Retrieval log & web sources</summary>
           <div id="log" class="log"></div>
         </details>
       </div>
     </section>
   </div>
 
-  <footer>Source: Arctic Shift public Reddit archive. Search results are a bounded sample controlled by your date range and item limit. Sentiment labels are heuristic unless you independently review the underlying text.</footer>
+  <footer>Retrieval combines OpenAI web search restricted to Reddit, best-effort direct Reddit thread fetching, and Arctic Shift archive backfill. Coverage is intentionally broad but not exhaustive. Sentiment labels are lightweight local heuristics; the opinion summary is generated by OpenAI from the retrieved sample.</footer>
 </main>
-
 <script src="sentiment.js"></script>
 </body>
 </html>
