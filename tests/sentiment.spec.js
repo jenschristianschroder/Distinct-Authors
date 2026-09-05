@@ -36,6 +36,7 @@ const fixture = {
     redditNativeRequests: 3, redditNativeFailures: 3, redditNativePosts: 0,
     redditPostsAttempted: 8, redditScrapeFailures: 8, redditLivePosts: 0, redditLiveComments: 0,
     arcticRequests: 12, arcticRequestFailures: 12, arcticPosts: 0, arcticComments: 0,
+    archiveThreadComments: 1, unresolvedPostAuthors: 0, unresolvedCommentAuthors: 0,
     mergedPosts: 1, mergedComments: 1
   },
   warnings: [],
@@ -63,10 +64,10 @@ async function productionSearch(request) {
       data: {
         subreddit: 'TheTowerGame',
         topic: 'Daily gem cap',
-        start: '2026-08-20',
+        start: '2026-08-06',
         end: '2026-09-05',
-        depth: 'standard',
-        maxItems: 100
+        depth: 'thorough',
+        maxItems: 500
       },
       timeout: 120000
     });
@@ -117,6 +118,34 @@ test('hybrid sentiment UI is current and renders retrieved data', async ({ page 
   await expect(page.locator('#error')).toBeHidden();
 });
 
+test('unavailable usernames are excluded from unique voices and voice rankings', async ({ page }) => {
+  const unavailableFixture = {
+    ...fixture,
+    posts: [
+      ...fixture.posts,
+      { ...fixture.posts[0], id: 'p2', author: '[unknown]', title: 'Another gem cap post', permalink: '/r/TheTowerGame/comments/p2/another/' }
+    ],
+    linkedPosts: [
+      ...fixture.linkedPosts,
+      { ...fixture.linkedPosts[0], id: 'p2', author: '[unknown]', title: 'Another gem cap post', permalink: '/r/TheTowerGame/comments/p2/another/' }
+    ],
+    stats: { ...fixture.stats, mergedPosts: 2, unresolvedPostAuthors: 1 }
+  };
+  await page.route('**/api/search', async route => {
+    await route.fulfill({ status: 200, contentType: 'application/json', body: JSON.stringify(unavailableFixture) });
+  });
+
+  await page.goto('/sentiment.html');
+  await page.getByLabel('Topic or concept').fill('Daily gem cap');
+  await page.getByLabel('Start date').fill('2026-08-06');
+  await page.getByLabel('End date').fill('2026-09-05');
+  await page.getByRole('button', { name: 'Search & analyze' }).click();
+
+  await expect(page.locator('#kpiAuthors')).toHaveText('2');
+  await expect(page.locator('#voicesSection')).not.toContainText('[unknown]');
+  await expect(page.locator('#coverageNote')).toContainText('excluded from voice counts');
+});
+
 test('empty backend response produces a useful error', async ({ page }) => {
   await page.route('**/api/search', async route => {
     await route.fulfill({
@@ -134,12 +163,15 @@ test('empty backend response produces a useful error', async ({ page }) => {
   await expect(page.locator('#error')).toContainText('No analyzable Reddit contributions were retrieved');
 });
 
-test('production API returns analyzable Daily gem cap evidence', async ({ request }) => {
+test('production API returns broad Daily gem cap coverage', async ({ request }) => {
   const response = await productionSearch(request);
   test.skip(!response, 'Live authentication is only available in GitHub Actions or when APP_ACCESS_TOKEN is configured.');
   expect(response.ok(), await response.text()).toBeTruthy();
   const data = await response.json();
   expect(Number(data?.stats?.webSources || 0)).toBeGreaterThan(0);
-  expect(Number(data?.stats?.webExtractedPosts || 0) + Number(data?.stats?.webExtractedComments || 0)).toBeGreaterThan(0);
-  expect((data.posts?.length || 0) + (data.comments?.length || 0)).toBeGreaterThan(0);
+  expect(Number(data?.stats?.archiveBroadCommentsScanned || 0)).toBeGreaterThan(20000);
+  expect(data.posts?.length || 0).toBeGreaterThanOrEqual(50);
+  expect(data.comments?.length || 0).toBeGreaterThanOrEqual(100);
+  expect(Number(data?.stats?.archiveThreadComments || 0)).toBeGreaterThanOrEqual(data.comments?.length || 0);
+  expect(Number(data?.stats?.unresolvedCommentAuthors || 0)).toBe(0);
 });
