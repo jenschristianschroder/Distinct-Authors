@@ -112,3 +112,9 @@ test('web-search OpenAI calls stay on the web-search model', () => {
   assert.equal(_test.routedOpenAIBody(body), body);
   assert.equal(_test.hasWebSearch(body), true);
 });
+
+test('topic sentiment range is capped at 30 inclusive days', () => {
+  assert.equal(_test.MAX_RANGE_DAYS, 30);
+  assert.equal(_test.inclusiveDays('2026-08-07', '2026-09-05'), 30);
+  assert.equal(_test.inclusiveDays('2026-08-06', '2026-09-05'), 31);
+});
