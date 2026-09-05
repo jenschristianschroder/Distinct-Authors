@@ -8,6 +8,7 @@ on:
       - 'sentiment.js'
       - 'sentiment.css'
       - 'api/**'
+      - 'lib/**'
       - 'tests/**'
       - 'playwright.config.js'
       - 'package.json'
