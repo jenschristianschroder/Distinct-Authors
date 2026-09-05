@@ -17,6 +17,7 @@ function setDefaults(){
   if(params.get('subreddit'))$('subreddit').value=params.get('subreddit');
   if(/^\d{4}-\d{2}-\d{2}$/.test(params.get('start')||''))$('start').value=params.get('start');
   if(/^\d{4}-\d{2}-\d{2}$/.test(params.get('end')||''))$('end').value=params.get('end');
+  if(params.get('focus')&&$('focusKeywords'))$('focusKeywords').value=params.get('focus').slice(0,240);
 }
 
 function normalizeBackendUrl(value){
@@ -87,9 +88,10 @@ function renderTopicCards(data){
     const disagreements=(topic.disagreements||[]).map(item=>`<div class="opinion"><span class="stance mixed">debate</span><span>${escapeHtml(item)}</span></div>`).join('');
     const popular=(topic.popular_posts||[]).map(post=>`<div class="popular-item"><a href="${escapeHtml(post.url)}" target="_blank" rel="noopener noreferrer">${escapeHtml(post.title)}</a><div class="popular-meta">score ${fmt(post.score)} · ${fmt(post.num_comments)} comments${post.author?` · u/${escapeHtml(post.author)}`:''}</div></div>`).join('')||'<span class="muted tiny">No matched posts.</span>';
     const evidence=(topic.representative||[]).slice(0,3).map(item=>`<div class="evidence-item">${escapeHtml(item.text)}<div class="evidence-meta">${escapeHtml(item.kind)} · ${escapeHtml(item.sentiment)}${item.author?` · u/${escapeHtml(item.author)}`:''}</div></div>`).join('');
+    const focusChip=topic.focus_match?'<span class="topic-chip"><strong>Focus match</strong></span>':'';
     return `<article class="topic-card">
       <div class="topic-card-head"><div><h4>${escapeHtml(topic.name)}</h4><div class="topic-description">${escapeHtml(topic.description||'')}</div></div><div class="topic-rank">${index+1}</div></div>
-      <div class="topic-meta"><span class="topic-chip"><strong>${fmt(topic.posts)}</strong> posts</span><span class="topic-chip"><strong>${fmt(topic.comments)}</strong> comments</span><span class="topic-chip"><strong>${fmt(Number(topic.share||0)*100,1)}%</strong> assigned share</span><span class="topic-chip">avg post score <strong>${fmt(topic.average_post_score,1)}</strong></span><span class="topic-chip">${escapeHtml(topic.confidence||'medium')} confidence</span></div>
+      <div class="topic-meta">${focusChip}<span class="topic-chip"><strong>${fmt(topic.posts)}</strong> posts</span><span class="topic-chip"><strong>${fmt(topic.comments)}</strong> comments</span><span class="topic-chip"><strong>${fmt(Number(topic.share||0)*100,1)}%</strong> assigned share</span><span class="topic-chip">avg post score <strong>${fmt(topic.average_post_score,1)}</strong></span><span class="topic-chip">${escapeHtml(topic.confidence||'medium')} confidence</span></div>
       <div class="topic-sentiment-summary"><div class="sentiment-stat"><strong class="positive-text">${pct(s.positive,total)}</strong><span>Positive</span></div><div class="sentiment-stat"><strong class="neutral-text">${pct(s.neutral,total)}</strong><span>Neutral</span></div><div class="sentiment-stat"><strong class="negative-text">${pct(s.negative,total)}</strong><span>Negative</span></div></div>
       <div class="topic-section"><div class="topic-section-title">Recurring opinions</div><div class="opinion-list">${opinions}${disagreements}</div></div>
       <div class="topic-section"><div class="topic-section-title">Leading voices</div><div class="voice-columns"><div class="voice-group"><strong>Post authors</strong>${voiceRows(topic.top_authors)}</div><div class="voice-group"><strong>Commenters</strong>${voiceRows(topic.top_commenters)}</div></div></div>
@@ -125,7 +127,8 @@ function render(data){
   $('kpiNeutral').textContent=fmt(overall.neutral);$('kpiNeutralSub').textContent=pct(overall.neutral,total);
   $('kpiNegative').textContent=fmt(overall.negative);$('kpiNegativeSub').textContent=pct(overall.negative,total);
   const targetText=stats.target_topics?` Topic discovery targeted ${fmt(stats.target_topics)} ${stats.topic_mode==='auto'?'automatically scaled ':''}topics/subtopics.`:'';
-  $('coverage').innerHTML=`<strong>Archive coverage:</strong> ${fmt(stats.posts_scanned)} posts and ${fmt(stats.comments_scanned)} comments scanned.${targetText} ${fmt(stats.assigned_contributions)} contributions received a primary assignment to one of the discovered topics.${stats.archive_failures?` <span class="negative-text">${fmt(stats.archive_failures)} archive slices failed.</span>`:''}`;
+  const focusText=Array.isArray(data.focus_keywords)&&data.focus_keywords.length?` Focus keywords: <strong>${data.focus_keywords.map(escapeHtml).join(', ')}</strong>. ${fmt(stats.focus_topic_matches||0)} discovered topics matched and were prioritized.`:'';
+  $('coverage').innerHTML=`<strong>Archive coverage:</strong> ${fmt(stats.posts_scanned)} posts and ${fmt(stats.comments_scanned)} comments scanned.${targetText}${focusText} ${fmt(stats.assigned_contributions)} contributions received a primary assignment to one of the discovered topics.${stats.archive_failures?` <span class="negative-text">${fmt(stats.archive_failures)} archive slices failed.</span>`:''}`;
   renderOverview(data);renderShare(data.topics||[]);renderTopicSentiment(data.topics||[]);renderTopicCards(data);renderPhrases(data);renderCaveats(data);
   $('results').classList.remove('hidden');
 }
@@ -133,15 +136,16 @@ function render(data){
 async function run(){
   $('error').classList.add('hidden');$('results').classList.add('hidden');
   const subreddit=$('subreddit').value.trim().replace(/^r\//i,''),start=$('start').value,end=$('end').value,topics=$('topicCount').value||'auto';
+  const focusKeywords=$('focusKeywords')?.value.trim()||'';
   if(!subreddit||!start||!end)return showError('Enter a subreddit and date range.');
   const days=Math.floor((new Date(`${end}T00:00:00Z`)-new Date(`${start}T00:00:00Z`))/86400000)+1;
   if(!Number.isFinite(days)||days<1)return showError('End date must be on or after start date.');
-  if(days>31)return showError('Choose a date range of 31 days or less.');
+  if(days>30)return showError('Choose a date range of 30 days or less.');
   $('run').disabled=true;
   try{
     setProgress(12,'Scanning subreddit archive…');
-    const promise=backendAnalyze({subreddit,start,end,topics});
-    const timer=setTimeout(()=>setProgress(55,'Clustering detailed topics, subtopics, and opinions with OpenAI…'),5000);
+    const promise=backendAnalyze({subreddit,start,end,topics,focusKeywords});
+    const timer=setTimeout(()=>setProgress(55,focusKeywords?'Clustering topics with your safe focus keywords…':'Clustering detailed topics, subtopics, and opinions with OpenAI…'),5000);
     const data=await promise;clearTimeout(timer);
     setProgress(88,'Mapping archive activity back to discovered topics…');
     render(data);setProgress(100,'Topic landscape ready.');
