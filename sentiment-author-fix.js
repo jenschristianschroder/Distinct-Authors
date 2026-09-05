@@ -48,9 +48,20 @@
     const stats = data.stats || {};
     const notes = [];
     const shownComments = Array.isArray(data.comments) ? data.comments.length : Number(stats.mergedComments || 0);
+    const directTopic = Number(stats.archiveTopicComments || 0);
     const contextual = Number(stats.archiveThreadComments || 0);
-    if (contextual > shownComments) {
-      notes.push(`${fmt(contextual)} archived comments were found under matched topic posts; ${fmt(shownComments)} are shown because of the selected Max per type limit.`);
+    const scanned = Number(stats.archiveBroadCommentsScanned || 0);
+    if (scanned) {
+      notes.push(`Archive scan inspected ${fmt(scanned)} comments in the selected period.`);
+    }
+    if (directTopic) {
+      notes.push(`${fmt(directTopic)} archived comments directly matched the topic or a high-precision variant.`);
+    }
+    if (contextual) {
+      notes.push(`${fmt(contextual)} archived comments were found inside matched topic threads.`);
+    }
+    if (Math.max(directTopic, contextual) > shownComments) {
+      notes.push(`${fmt(shownComments)} comments are analyzed because of the selected Max per type limit; direct topic matches are prioritized before contextual replies.`);
     }
     const unresolved = Number(stats.unresolvedPostAuthors || 0) + Number(stats.unresolvedCommentAuthors || 0);
     if (unresolved) {
