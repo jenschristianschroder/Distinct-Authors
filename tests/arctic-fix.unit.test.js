@@ -15,6 +15,16 @@ test('Arctic Shift search URLs avoid unsupported keyword mode and use inclusive 
   assert.equal(url.searchParams.get('fields').includes('url'), true);
 });
 
+test('Arctic comment search separates link context from broad archive fetch', () => {
+  const input = 'https://arctic-shift.photon-reddit.com/api/comments/search?subreddit=TheTowerGame&after=2026-08-20&before=2026-09-05&body=gem%20cap&link_id=t3_abc123&limit=auto&fields=id%2Cauthor%2Ccreated_utc%2Cbody%2Cscore%2Clink_id%2Cparent_id%2Cpermalink%2Csubreddit';
+  const rewritten = _test.rewriteArcticUrl(input);
+  assert.equal(rewritten.term, 'gem cap');
+  assert.equal(rewritten.linkId, 'abc123');
+  const url = new URL(rewritten.url);
+  assert.equal(url.searchParams.has('body'), false);
+  assert.equal(url.searchParams.has('link_id'), false);
+});
+
 test('Arctic Shift rows get synthetic Reddit permalinks', () => {
   const postPayload = { data: [{ id: 'p123', subreddit: 'TheTowerGame', title: 'Gem cap' }] };
   const post = _test.enrichArcticPayload(postPayload, 'posts', 'TheTowerGame').data[0];
@@ -31,6 +41,25 @@ test('Arctic broad rows are locally filtered by the generated search term', () =
   assert.equal(_test.rowMatchesTerm(post, 'posts', 'tournament rewards'), false);
   const comment = { body: 'The daily gem cap should be higher.' };
   assert.equal(_test.rowMatchesTerm(comment, 'comments', 'daily gem cap'), true);
+});
+
+test('semantic-ish topic variants recover wording that does not contain the literal phrase', () => {
+  const post = { title: 'Is there a daily limit on ad gems?', selftext: 'The restriction feels low.' };
+  const score = _test.topicMatchScore(post, 'posts', ['Daily gem cap', 'daily ad gem limit']);
+  assert.ok(score >= 60);
+  assert.equal(_test.topicMatchScore({ title: 'Tournament rewards', selftext: 'Love the new league.' }, 'posts', ['Daily gem cap', 'daily ad gem limit']), 0);
+});
+
+test('archive metadata replaces an unknown extracted author', () => {
+  const merged = _test.mergeArchiveRows(
+    [{ id: 'abc', author: '[unknown]', title: 'Gem cap', sources: ['openai_web'] }],
+    [{ id: 'abc', author: 'real_author', title: 'Gem cap', subreddit: 'TheTowerGame', score: 20 }],
+    'posts',
+    'topic_variant'
+  );
+  assert.equal(merged[0].author, 'real_author');
+  assert.ok(merged[0].sources.includes('arctic_shift'));
+  assert.equal(_test.isUnknownAuthor(merged[0].author), false);
 });
 
 test('Arctic broad backfill slices comments more finely than posts', () => {
