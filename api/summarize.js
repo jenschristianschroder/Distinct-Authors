@@ -123,7 +123,7 @@ module.exports = async function handler(req, res) {
   ].filter(Boolean).join('\n');
 
   const controller = new AbortController();
-  const timer = setTimeout(() => controller.abort(), 45000);
+  const timer = setTimeout(() => controller.abort(), 25000);
   try {
     const openaiResponse = await fetch('https://api.openai.com/v1/responses', {
       method: 'POST',
