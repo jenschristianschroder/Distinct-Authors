@@ -1,6 +1,6 @@
 const crypto = require('node:crypto');
 
-const DEFAULT_MODEL = 'gpt-5.6-luna';
+const DEFAULT_MODEL = 'gpt-5-nano';
 const DEFAULT_ALLOWED_ORIGINS = ['https://jenschristianschroder.github.io'];
 const MAX_EVIDENCE_CHARS = 30000;
 
