@@ -42,6 +42,50 @@ const fixture = {
   webSources: [{ url: 'https://www.reddit.com/r/TheTowerGame/comments/p1/gem_cap_needs_to_be_raised/', title: 'Gem cap' }]
 };
 
+async function githubActionsOidcToken() {
+  const requestUrl = process.env.ACTIONS_ID_TOKEN_REQUEST_URL;
+  const requestToken = process.env.ACTIONS_ID_TOKEN_REQUEST_TOKEN;
+  if (!requestUrl || !requestToken) return '';
+  const joiner = requestUrl.includes('?') ? '&' : '?';
+  const response = await fetch(`${requestUrl}${joiner}audience=distinct-authors-ci`, {
+    headers: { Authorization: `Bearer ${requestToken}` }
+  });
+  if (!response.ok) throw new Error(`Unable to obtain GitHub OIDC token: HTTP ${response.status}`);
+  const payload = await response.json();
+  return String(payload?.value || '');
+}
+
+async function productionSearch(request) {
+  const base = process.env.LIVE_BASE_URL || 'https://distinct-authors.vercel.app';
+  if (process.env.APP_ACCESS_TOKEN) {
+    return request.post(`${base}/api/search`, {
+      headers: { 'X-App-Token': process.env.APP_ACCESS_TOKEN },
+      data: {
+        subreddit: 'TheTowerGame',
+        topic: 'Daily gem cap',
+        start: '2026-08-20',
+        end: '2026-09-05',
+        depth: 'standard',
+        maxItems: 100
+      },
+      timeout: 120000
+    });
+  }
+
+  const oidc = await githubActionsOidcToken();
+  if (!oidc) return null;
+  let response = null;
+  for (let attempt = 0; attempt < 7; attempt++) {
+    response = await request.post(`${base}/api/ci-search`, {
+      headers: { Authorization: `Bearer ${oidc}` },
+      timeout: 120000
+    });
+    if (![404, 503].includes(response.status())) return response;
+    await new Promise(resolve => setTimeout(resolve, 5000));
+  }
+  return response;
+}
+
 test.beforeEach(async ({ page }) => {
   await page.addInitScript(() => {
     sessionStorage.setItem('sentimentAppToken', 'test-token');
@@ -91,22 +135,11 @@ test('empty backend response produces a useful error', async ({ page }) => {
 });
 
 test('production API returns analyzable Daily gem cap evidence', async ({ request }) => {
-  test.skip(!process.env.APP_ACCESS_TOKEN, 'Add APP_ACCESS_TOKEN as a GitHub Actions repository secret to enable the live integration test.');
-  const base = process.env.LIVE_BASE_URL || 'https://distinct-authors.vercel.app';
-  const response = await request.post(`${base}/api/search`, {
-    headers: { 'X-App-Token': process.env.APP_ACCESS_TOKEN },
-    data: {
-      subreddit: 'TheTowerGame',
-      topic: 'Daily gem cap',
-      start: '2026-08-06',
-      end: '2026-09-05',
-      depth: 'standard',
-      maxItems: 150
-    },
-    timeout: 120000
-  });
+  const response = await productionSearch(request);
+  test.skip(!response, 'Live authentication is only available in GitHub Actions or when APP_ACCESS_TOKEN is configured.');
   expect(response.ok(), await response.text()).toBeTruthy();
   const data = await response.json();
   expect(Number(data?.stats?.webSources || 0)).toBeGreaterThan(0);
+  expect(Number(data?.stats?.webExtractedPosts || 0) + Number(data?.stats?.webExtractedComments || 0)).toBeGreaterThan(0);
   expect((data.posts?.length || 0) + (data.comments?.length || 0)).toBeGreaterThan(0);
 });

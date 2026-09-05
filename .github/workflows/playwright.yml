@@ -11,16 +11,18 @@ on:
       - 'tests/**'
       - 'playwright.config.js'
       - 'package.json'
+      - 'vercel.json'
       - '.github/workflows/playwright.yml'
   workflow_dispatch:
 
 permissions:
   contents: read
+  id-token: write
 
 jobs:
   playwright:
     runs-on: ubuntu-latest
-    timeout-minutes: 10
+    timeout-minutes: 12
     env:
       APP_ACCESS_TOKEN: ${{ secrets.APP_ACCESS_TOKEN }}
       LIVE_BASE_URL: https://distinct-authors.vercel.app
