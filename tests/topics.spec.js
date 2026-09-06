@@ -1,26 +1,29 @@
 const { test, expect } = require('@playwright/test');
 
 const fixture = {
-  subreddit:'TheTowerGame', start:'2026-08-23', end:'2026-09-05', model:'gpt-5.6-luna',
+  subreddit:'TheTowerGame', start:'2026-08-23', end:'2026-09-05', model:'gpt-5-nano',
   overview:'The subreddit is mainly discussing the daily gem cap and module progression.',
   cross_topic_patterns:['Players connect reward limits with progression speed.'],
   caveats:['The archive is a broad sample rather than a complete Reddit census.'],
   overall_sentiment:{positive:40,neutral:70,negative:30},
+  overall_sentiment_method:'AI-estimated from multilingual cluster evidence',
   candidate_phrases:[{phrase:'gem cap',count:24.2},{phrase:'new modules',count:18.1}],
-  stats:{posts_scanned:40,comments_scanned:100,known_voices:55,topics_found:2,archive_failures:0,assigned_contributions:100,total_contributions:140},
+  stats:{posts_scanned:40,comments_scanned:100,analyzed_posts:39,analyzed_comments:94,analyzed_contributions:133,noise_removed:7,known_voices:55,topics_found:2,archive_failures:0,assigned_contributions:100,total_contributions:140},
   topics:[
     {
       name:'Daily gem cap',description:'Discussion about the daily ad-gem claim limit.',keywords:['gem cap','daily gem limit'],confidence:'high',
       opinions:[{stance:'negative',summary:'Many users want the cap raised or removed.'},{stance:'mixed',summary:'Some users accept a limit but want clearer tracking.'}],
       disagreements:['Users disagree about what counts toward the cap.'],posts:14,comments:46,contributions:60,share:.6,average_post_score:48.2,
-      sentiment:{positive:8,neutral:24,negative:28},top_authors:[{author:'alice',count:3}],top_commenters:[{author:'bob',count:5}],
+      sentiment:{positive:8,neutral:24,negative:28},sentiment_method:'AI-estimated from multilingual cluster evidence',sentiment_summary:'Discussion leans negative because players dislike the current limit.',
+      top_authors:[{author:'alice',count:3}],top_commenters:[{author:'bob',count:5}],
       popular_posts:[{title:'Gem Cap needs to be raised',url:'https://www.reddit.com/r/TheTowerGame/comments/p1/',score:150,num_comments:80,author:'alice'}],
       representative:[{kind:'comment',author:'bob',sentiment:'negative',text:'The cap makes progression too slow.',score:8}]
     },
     {
-      name:'Modules',description:'Discussion of module upgrades and reroll progression.',keywords:['modules','reroll'],confidence:'medium',
+      name:'Module progression',description:'Discussion of module upgrades and reroll progression.',keywords:['modules','reroll'],confidence:'medium',
       opinions:[{stance:'positive',summary:'Some players like the new module quality-of-life changes.'}],disagreements:[],posts:10,comments:30,contributions:40,share:.4,average_post_score:32,
-      sentiment:{positive:20,neutral:15,negative:5},top_authors:[],top_commenters:[],popular_posts:[],representative:[]
+      sentiment:{positive:20,neutral:15,negative:5},sentiment_method:'AI-estimated from multilingual cluster evidence',sentiment_summary:'Mostly positive reactions to quality-of-life improvements.',
+      top_authors:[],top_commenters:[],popular_posts:[],representative:[]
     }
   ]
 };
@@ -62,6 +65,7 @@ test('topic landscape renders discovered topics and opinions', async ({ page }) 
   await expect(page.locator('#topicCards')).toContainText('Daily gem cap');
   await expect(page.locator('#topicCards')).toContainText('Many users want the cap raised or removed.');
   await expect(page.locator('#topicCards')).toContainText('u/bob');
+  await expect(page.locator('#coverage')).toContainText('7 automated, repeated-boilerplate, or placeholder contributions were excluded');
   await expect(page.locator('#error')).toBeHidden();
 });
 
@@ -106,19 +110,30 @@ test('topic landscape has no horizontal overflow on phone', async ({ page }) => 
   await page.getByLabel('Start date').fill('2026-08-23');
   await page.getByLabel('End date').fill('2026-09-05');
   await page.getByRole('button',{name:'Analyze subreddit topics'}).click();
-  await expect(page.locator('#topicCards')).toContainText('Modules');
+  await expect(page.locator('#topicCards')).toContainText('Module progression');
   const overflow = await page.evaluate(() => document.documentElement.scrollWidth - document.documentElement.clientWidth);
   expect(overflow).toBeLessThanOrEqual(1);
 });
 
-test('production topic landscape endpoint returns real clustered subreddit data', async ({ request }) => {
+test('production topic landscape endpoint returns substantive non-automated topics', async ({ request }) => {
   const response=await productionTopics(request);
   test.skip(!response,'Live authentication is only available in GitHub Actions.');
   expect(response.ok(),await response.text()).toBeTruthy();
   const data=await response.json();
   expect(Number(data?.stats?.posts_scanned||0)).toBeGreaterThan(10);
   expect(Number(data?.stats?.comments_scanned||0)).toBeGreaterThan(50);
+  expect(Number(data?.stats?.analyzed_contributions||0)).toBeGreaterThan(50);
   expect(data?.topics?.length||0).toBeGreaterThanOrEqual(3);
   expect(Number(data?.stats?.assigned_contributions||0)).toBeGreaterThan(0);
   expect(String(data?.overview||'').length).toBeGreaterThan(40);
+
+  const generic=/^(?:discussion cluster(?: \d+)?|general discussion|general|miscellaneous|other|experience|here|removed|deleted|questions|question|help|thetowergame)$/i;
+  for(const topic of data.topics||[]){
+    expect(Number(topic?.contributions||0)).toBeGreaterThan(0);
+    expect(String(topic?.name||'')).not.toMatch(generic);
+  }
+  const voices=(data.topics||[]).flatMap(topic=>[...(topic.top_authors||[]),...(topic.top_commenters||[])]).map(row=>String(row.author||'').toLowerCase());
+  expect(voices).not.toContain('automoderator');
+  expect(voices.some(author=>author.endsWith('-modteam'))).toBeFalsy();
+  expect((data.candidate_phrases||[]).some(item=>String(item.phrase||'').toLowerCase()==='thetowergame')).toBeFalsy();
 });
