@@ -19,7 +19,7 @@
   <section class="hero topics-hero">
     <div class="eyebrow">Subreddit-wide research</div>
     <h1>Subreddit Topic Landscape</h1>
-    <p class="subhead muted">Discover what a subreddit is talking about, which topics dominate the conversation, the recurring opinions around each topic, and the sentiment mix behind those discussions.</p>
+    <p class="subhead muted">Discover the meaningful subjects a subreddit is discussing now, the recurring opinions and disagreements around each subject, and the sentiment behind those conversations.</p>
   </section>
 
   <div class="app-grid">
@@ -48,7 +48,7 @@
 
         <div>
           <label for="focusKeywords">Focus keywords <span class="muted">(optional)</span></label>
-          <input id="focusKeywords" type="text" maxlength="240" placeholder="e.g. gem cap, modules, tournament rewards" autocomplete="off" spellcheck="false" />
+          <input id="focusKeywords" type="text" maxlength="240" placeholder="e.g. prices, transport, safety" autocomplete="off" spellcheck="false" />
           <div class="muted tiny">Up to 8 comma-separated words or short phrases. They are treated only as semantic data and local ranking signals, never as instructions to the LLM.</div>
         </div>
 
@@ -67,7 +67,7 @@
 
         <div class="info-box">
           <strong class="info-title">How it works</strong>
-          <div>Arctic Shift scans posts and comments in the selected period. OpenAI embeddings cluster a representative archive sample into major topics and meaningful subtopics, then Nano labels and summarizes the clusters. Optional focus keywords only strengthen matching archive text in the embedding step and prioritize supported matching topics afterward; they are never inserted into generative instructions. The app maps the full retrieved archive back to the clusters for counts, sentiment, authors, commenters, and popular posts.</div>
+          <div>Arctic Shift scans the selected period. Repeated moderator/automation boilerplate and placeholder content are removed before analysis. OpenAI embeddings cluster a representative multilingual sample, then Nano labels each cluster with a concrete subject and summarizes opinions, disagreements, and sentiment. Generic community words are treated as context rather than topics. The app maps those topics back to the wider filtered archive for discussion volume, leading voices, and popular posts.</div>
         </div>
 
         <details class="llm-settings">
@@ -105,8 +105,8 @@
           </div>
           <div class="kpi-grid topics-kpis">
             <div class="kpi featured"><div class="kpi-label">Archive contributions scanned</div><div class="kpi-value" id="kpiContributions">—</div><div class="kpi-sub" id="kpiContributionsSub"></div></div>
-            <div class="kpi"><div class="kpi-label">Topics found</div><div class="kpi-value" id="kpiTopics">—</div><div class="kpi-sub" id="kpiTopicsSub">Distinct LLM-clustered discussion areas</div></div>
-            <div class="kpi"><div class="kpi-label">Known voices</div><div class="kpi-value" id="kpiVoices">—</div><div class="kpi-sub">Resolved post authors and commenters</div></div>
+            <div class="kpi"><div class="kpi-label">Meaningful topics found</div><div class="kpi-value" id="kpiTopics">—</div><div class="kpi-sub" id="kpiTopicsSub">Substantive discussion areas mapped back to archive activity</div></div>
+            <div class="kpi"><div class="kpi-label">Known voices</div><div class="kpi-value" id="kpiVoices">—</div><div class="kpi-sub">Resolved non-automated post authors and commenters</div></div>
             <div class="kpi"><div class="kpi-label">Positive</div><div class="kpi-value positive-text" id="kpiPositive">—</div><div class="kpi-sub" id="kpiPositiveSub"></div></div>
             <div class="kpi"><div class="kpi-label">Neutral</div><div class="kpi-value neutral-text" id="kpiNeutral">—</div><div class="kpi-sub" id="kpiNeutralSub"></div></div>
             <div class="kpi"><div class="kpi-label">Negative</div><div class="kpi-value negative-text" id="kpiNegative">—</div><div class="kpi-sub" id="kpiNegativeSub"></div></div>
@@ -115,8 +115,8 @@
         </div>
 
         <div class="panel chart-card">
-          <h3>AI overview</h3>
-          <div class="chart-sub">High-level synthesis of the retrieved subreddit sample.</div>
+          <h3>What is going on</h3>
+          <div class="chart-sub">AI synthesis of the substantive discussion areas found in the selected period.</div>
           <div id="overview" class="overview-copy"></div>
           <div id="patterns" class="pattern-list"></div>
         </div>
@@ -124,12 +124,12 @@
         <div class="chart-grid two">
           <div class="panel chart-card">
             <h3>Discussion share by topic</h3>
-            <div class="chart-sub">Primary topic assignment across retrieved posts and comments.</div>
+            <div class="chart-sub">Primary topic assignment across meaningful filtered posts and comments.</div>
             <div id="topicShare" class="topic-bars"></div>
           </div>
           <div class="panel chart-card">
             <h3>Sentiment by topic</h3>
-            <div class="chart-sub">Lightweight local sentiment classification for contributions assigned to each topic.</div>
+            <div class="chart-sub">Multilingual AI-estimated sentiment from representative evidence for each semantic cluster.</div>
             <div id="topicSentiment" class="sentiment-topic-list"></div>
           </div>
         </div>
@@ -138,7 +138,7 @@
           <div class="section-head">
             <div>
               <h3>Topic details</h3>
-              <div class="chart-sub">Topics and subtopics are ranked by matched discussion volume, with optional focus matches prioritized. Opinions are synthesized by OpenAI; counts and sentiment are calculated from archive rows.</div>
+              <div class="chart-sub">Topics are concrete subjects rather than generic subreddit words. Recurring opinions and disagreements are synthesized from representative evidence; volume, voices, and popular posts are mapped from the wider filtered archive.</div>
             </div>
           </div>
           <div id="topicCards" class="topic-card-grid"></div>
@@ -146,7 +146,7 @@
 
         <div class="panel chart-card">
           <h3>Corpus signals</h3>
-          <div class="chart-sub">High-frequency words and phrases used as supporting signals for topic discovery.</div>
+          <div class="chart-sub">High-frequency discriminative words and phrases after removing generic context and repeated boilerplate.</div>
           <div id="candidatePhrases" class="phrase-list"></div>
         </div>
 
@@ -158,7 +158,7 @@
     </section>
   </div>
 
-  <footer>This page is archive-first: OpenAI identifies and summarizes topics from a representative Arctic Shift sample, while full retrieved archive rows are used for topic counts, sentiment, leading voices, and post popularity. Results are broad but not an exhaustive census of Reddit.</footer>
+  <footer>This page is archive-first: semantic clustering discovers meaningful current discussion areas from a filtered representative sample, while the wider filtered archive is used for topic volume, leading voices, and popularity. Results are broad but not an exhaustive census of Reddit.</footer>
 </main>
 <script src="topics.js"></script>
 <script src="topics-range-limit.js"></script>
