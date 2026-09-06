@@ -28,6 +28,20 @@ test('sample corpus keeps both posts and comments', () => {
   assert.ok(sample.some(item => item.kind === 'comment'));
 });
 
+test('sampled comments include parent post title when thread context is available', () => {
+  const posts = [{ id:'p1', created_utc:1000, title:'Public transport reliability', selftext:'Discussion of buses and trains.', score:5, num_comments:2 }];
+  const comments = [
+    { id:'c1', link_id:'t3_p1', created_utc:1001, body:'It has been much worse during rush hour.', score:2 },
+    { id:'c2', link_id:'t3_missing', created_utc:1002, body:'This unrelated comment has no parent title in the scan.', score:1 }
+  ];
+  const sample = embedding.sampleCorpus(posts, comments, 40);
+  const linked = sample.find(item => item.id === 'c1');
+  const missing = sample.find(item => item.id === 'c2');
+  assert.match(linked.text, /COMMENT ON POST: Public transport reliability/);
+  assert.match(linked.text, /COMMENT: It has been much worse during rush hour\./);
+  assert.equal(missing.text, 'COMMENT | This unrelated comment has no parent title in the scan.');
+});
+
 test('topic cost estimator uses Nano and embedding prices', () => {
   const cost = topicsApi._test.costSummary(
     'gpt-5-nano',
