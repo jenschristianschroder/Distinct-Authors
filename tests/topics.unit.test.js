@@ -28,7 +28,7 @@ test('candidate phrase extraction surfaces repeated substantive terms', () => {
 test('topic assignment separates gem cap and module discussion', () => {
   const topics = [
     { name:'Daily gem cap', keywords:['gem cap','daily gem limit'] },
-    { name:'Modules', keywords:['modules','module changes','reroll'] }
+    { name:'Modules', keywords:['module','module changes','module improvements','reroll'] }
   ];
   const buckets = landscape.primaryAssignments(posts, comments, topics);
   assert.equal(buckets[0].posts.length, 1);
@@ -74,6 +74,7 @@ test('subreddit name is treated as context rather than a topic keyword', () => {
   const cityPosts = [
     { title:'ExampleCity metro delays', selftext:'Metro service is delayed again near the central station.' },
     { title:'ExampleCity metro extension', selftext:'New metro line opening discussion and station access.' },
+    { title:'ExampleCity metro crowding', selftext:'Metro trains and stations are crowded during peak hours.' },
     { title:'ExampleCity food prices', selftext:'Restaurant prices increased this month.' }
   ];
   const phrases = landscape.candidatePhrases(cityPosts, [], 30, { contextTerms:['ExampleCity'] }).map(row => row.phrase);
